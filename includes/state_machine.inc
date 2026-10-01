@@ -1,0 +1,2 @@
+STATE_MAIN_MENU equ 1
+STATE_IN_GAME equ 2
