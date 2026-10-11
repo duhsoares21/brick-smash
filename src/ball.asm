@@ -14,6 +14,8 @@ global offset
 
 global Ball
 
+extern delta_time
+
 extern paddle_rect
 
 section .data
@@ -21,7 +23,11 @@ section .data
     ball_y dd 736.0
     ball_radius dd 12.0
 
-    current_state dd 1
+    ball_direction_x dd 0.3
+    ball_direction_y dd -1.0
+    ball_speed dd 50.0
+
+    current_state dd 2
     const_div dd 2.0
     offset dd 0.0
 
@@ -63,6 +69,24 @@ State_Machine:
             ret
 
         .free:
+            movss xmm0, [ball_speed]
+            mulss xmm0, [delta_time]
+            mulss xmm0, [ball_direction_x]
+
+            movss xmm1, [ball_x]
+            addss xmm1, xmm0
+
+            movss [ball_x], xmm1
+
+            movss xmm0, [ball_speed]
+            mulss xmm0, [delta_time]
+            mulss xmm0, [ball_direction_y]
+
+            movss xmm1, [ball_y]
+            addss xmm1, xmm0
+
+            movss [ball_y], xmm1
+
             ret
 
         .continue:
