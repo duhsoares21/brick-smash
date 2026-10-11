@@ -4,9 +4,19 @@ default rel
 %include "../includes/SDL_structs.inc"
 %include "../includes/state_machine.inc"
 
-extern SDL_SetRenderDrawColor
-extern filledCircleRGBA
-extern SDL_RenderFillRect
+%ifdef WIN32
+    extern SDL_SetRenderDrawColor_sysv
+    extern SDL_RenderFillRect_sysv
+    extern filledCircleRGBA_sysv
+
+    %define SDL_SetRenderDrawColor        SDL_SetRenderDrawColor_sysv
+    %define SDL_RenderFillRect            SDL_RenderFillRect_sysv
+    %define filledCircleRGBA              filledCircleRGBA_sysv
+%else
+    extern SDL_SetRenderDrawColor
+    extern SDL_RenderFillRect
+    extern filledCircleRGBA
+%endif
 
 extern renderer
 extern current_state

@@ -3,8 +3,6 @@ default rel
 
 %include "../includes/state_machine.inc"
 
-extern printf
-
 extern MainMenu
 extern GameLoop
 

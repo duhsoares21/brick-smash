@@ -5,7 +5,13 @@ default rel
 %include "../includes/state_machine.inc"
 %include "../includes/input.inc"
 
-extern SDL_GetKeyboardState
+%ifdef WIN32
+    extern SDL_GetKeyboardState_sysv
+
+    %define SDL_GetKeyboardState          SDL_GetKeyboardState_sysv
+%else
+    extern SDL_GetKeyboardState
+%endif
 
 extern set_state
 extern state_machine

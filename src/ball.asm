@@ -27,7 +27,7 @@ section .data
     ball_direction_y dd -1.0
     ball_speed dd 50.0
 
-    current_state dd 2
+    current_state dd 1
     const_div dd 2.0
     offset dd 0.0
 

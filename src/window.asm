@@ -1,21 +1,51 @@
 bits 64
 default rel
 
-extern SDL_Init
-extern SDL_CreateWindowAndRenderer
-extern SDL_PollEvent
-extern SDL_SetRenderDrawColor
-extern SDL_RenderClear
-extern SDL_RenderPresent
-extern SDL_RenderLine
-extern SDL_DelayPrecise
-extern SDL_GetTicksNS
-extern SDL_DestroyRenderer
-extern SDL_DestroyWindow
-extern SDL_Quit
-extern SDL_GetError
+%ifdef WIN32
+    extern SDL_Init_sysv
+    extern SDL_CreateWindowAndRenderer_sysv
+    extern SDL_PollEvent_sysv
+    extern SDL_SetRenderDrawColor_sysv
+    extern SDL_RenderClear_sysv
+    extern SDL_RenderPresent_sysv
+    extern SDL_RenderLine_sysv
+    extern SDL_DelayPrecise_sysv
+    extern SDL_GetTicksNS_sysv
+    extern SDL_DestroyRenderer_sysv
+    extern SDL_DestroyWindow_sysv
+    extern SDL_Quit_sysv
+    extern SDL_GetError_sysv
 
-extern printf
+    %define SDL_Init                      SDL_Init_sysv
+    %define SDL_CreateWindowAndRenderer   SDL_CreateWindowAndRenderer_sysv
+    %define SDL_PollEvent                 SDL_PollEvent_sysv
+    %define SDL_SetRenderDrawColor        SDL_SetRenderDrawColor_sysv
+    %define SDL_RenderClear               SDL_RenderClear_sysv
+    %define SDL_RenderPresent             SDL_RenderPresent_sysv
+    %define SDL_RenderLine                SDL_RenderLine_sysv
+    %define SDL_DelayPrecise              SDL_DelayPrecise_sysv
+    %define SDL_GetTicksNS                SDL_GetTicksNS_sysv
+    %define SDL_DestroyRenderer           SDL_DestroyRenderer_sysv
+    %define SDL_DestroyWindow             SDL_DestroyWindow_sysv
+    %define SDL_Quit                      SDL_Quit_sysv
+    %define SDL_GetError                  SDL_GetError_sysv
+%else
+    extern SDL_Init
+    extern SDL_CreateWindowAndRenderer
+    extern SDL_PollEvent
+    extern SDL_SetRenderDrawColor
+    extern SDL_RenderClear
+    extern SDL_RenderPresent
+    extern SDL_RenderLine
+    extern SDL_DelayPrecise
+    extern SDL_GetTicksNS
+    extern SDL_DestroyRenderer
+    extern SDL_DestroyWindow
+    extern SDL_Quit
+    extern SDL_GetError
+%endif
+
+;extern printf
 
 extern input
 extern state_machine
@@ -94,10 +124,10 @@ create_window:
     test al, al
     jz .error
 
-    lea rdi, [success_msg]
-    mov al, 0;Quantos Float Points foram usados
+    ;lea rdi, [success_msg]
+    ;mov al, 0;Quantos Float Points foram usados
 
-    call printf
+    ;call printf
 
     call state_machine
 
@@ -298,10 +328,10 @@ create_window:
 
     call SDL_GetError
 
-    mov rsi, rax
-    lea rdi, [error_msg]
-    xor eax, eax
-    call printf
+    ;mov rsi, rax
+    ;lea rdi, [error_msg]
+    ;xor eax, eax
+    ;call printf
 
     call SDL_Quit
 

@@ -1,7 +1,7 @@
 bits 64
 default rel
 
-extern printf
+;extern printf
 
 global MainMenu
 
@@ -14,9 +14,9 @@ MainMenu:
     push rbp
     mov rbp, rsp
 
-    lea rdi, [message]
-    mov al, 0
-    call printf
+    ;lea rdi, [message]
+    ;mov al, 0
+    ;call printf
 
     pop rbp
 
