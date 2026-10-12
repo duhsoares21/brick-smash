@@ -3,6 +3,7 @@ default rel
 
 extern Paddle
 extern Ball
+extern Ball_Animation
 
 global GameLoop
 
@@ -18,5 +19,6 @@ section .text
 
 GameLoop:
     call Paddle
+    call Ball_Animation
     call Ball
     ret

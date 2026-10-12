@@ -13,11 +13,10 @@ project(BrickSmash LANGUAGES C ASM_NASM)
 if(WIN32)
     set(CMAKE_ASM_NASM_OBJECT_FORMAT win64)
     enable_language(RC)
+    add_subdirectory(external/SDL EXCLUDE_FROM_ALL)
 else()
     set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
 endif()
-
-add_subdirectory(external/SDL EXCLUDE_FROM_ALL)
 
 # ============================================================
 # Wrappers System V
@@ -41,6 +40,7 @@ add_executable(BrickSmash
         src/input.asm
         src/paddle.asm
         src/ball.asm
+        src/ball_animation.asm
         src/collision.asm
         src/render.asm
         src/game.asm
@@ -92,7 +92,7 @@ if(WIN32)
     )
 else()
     target_link_libraries(BrickSmash PRIVATE
-            SDL3::SDL3
+            SDL3
             SDL3_gfx
     )
 endif()

@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-ABI
-
 #ifdef _WIN32
 #define SYSV __attribute__((sysv_abi))
 #else

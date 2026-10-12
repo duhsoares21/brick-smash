@@ -29,6 +29,7 @@ extern right_screen_limit
 
 extern Paddle
 extern Ball
+extern Set_Ball_State
 
 extern printf
 
@@ -52,6 +53,9 @@ input:
     cmp byte [rax + SDL_SCANCODE_RETURN], 0
     jne return_pressed
 
+    cmp byte [rax + SDL_SCANCODE_SPACE], 0
+    jne space_pressed
+
     cmp byte [rax + SDL_SCANCODE_LEFT], 0
     jne left_pressed
 
@@ -73,6 +77,20 @@ return_pressed:
                 mov rdi, 2
                 call set_state
                 call state_machine
+            pop rbp
+    ret
+
+space_pressed:
+    cmp [current_state], STATE_IN_GAME
+    je .is_in_game
+
+    jmp no_input
+
+        .is_in_game:
+            push rbp
+            mov rbp, rsp
+                mov rdi, 2
+                call Set_Ball_State
             pop rbp
     ret
 
@@ -122,10 +140,13 @@ right_pressed:
             movss xmm0, [paddle_rect + SDL_FRect.x]
             addss xmm0, xmm1
 
-            ucomiss xmm0, [right_screen_limit]
+            movss xmm1, [right_screen_limit]
+            subss xmm1, [paddle_rect + SDL_FRect.w]
+
+            ucomiss xmm0, xmm1
             jbe .save_position
 
-            movss xmm0, [right_screen_limit]
+            movss xmm0, xmm1
 
             .save_position:
                 movss [paddle_rect + SDL_FRect.x], xmm0

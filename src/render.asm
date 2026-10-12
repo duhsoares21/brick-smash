@@ -46,6 +46,8 @@ extern ball_y
 extern ball_radius
 
 extern ball_color
+extern ball_color_glow
+extern ball_active_collision
 
 global Render
 
@@ -174,12 +176,28 @@ Render:
             movss xmm1, [ball_y]
             movss xmm2, [ball_radius]
 
-            mov esi, [ball_color + SDL_Color.r]
-            mov edx, [ball_color + SDL_Color.g]
-            mov ecx, [ball_color + SDL_Color.b]
-            mov r8d, [ball_color + SDL_Color.a]
+            cmp [ball_active_collision], 1
+            je .collision_ball
 
-            call filledCircleRGBA
+            .default_ball:
+                mov esi, [ball_color + SDL_Color.r]
+                mov edx, [ball_color + SDL_Color.g]
+                mov ecx, [ball_color + SDL_Color.b]
+                mov r8d, [ball_color + SDL_Color.a]
+
+                call filledCircleRGBA
+
+                jmp .continue_draw
+
+            .collision_ball:
+                mov esi, [ball_color_glow + SDL_Color.r]
+                mov edx, [ball_color_glow + SDL_Color.g]
+                mov ecx, [ball_color_glow + SDL_Color.b]
+                mov r8d, [ball_color_glow + SDL_Color.a]
+
+                call filledCircleRGBA
+
+            .continue_draw:
 
         pop rbp
 
