@@ -48,11 +48,16 @@ add_executable(BrickSmash
 )
 
 target_compile_options(BrickSmash PRIVATE
+        $<$<COMPILE_LANGUAGE:ASM_NASM>:-g>
+        $<$<AND:$<COMPILE_LANGUAGE:ASM_NASM>,$<BOOL:${WIN32}>>:-Fcv8>
+        $<$<AND:$<COMPILE_LANGUAGE:ASM_NASM>,$<BOOL:${UNIX}>>:-Fdwarf>
         $<$<COMPILE_LANGUAGE:ASM_NASM>:-I${CMAKE_SOURCE_DIR}/includes/>
         $<$<AND:$<COMPILE_LANGUAGE:ASM_NASM>,$<BOOL:${WIN32}>>:-DWIN32>
 )
 
-if(UNIX AND NOT APPLE)
+if(WIN32)
+    set(CMAKE_ASM_NASM_FLAGS_DEBUG "-g -F cv8")
+elseif(UNIX AND NOT APPLE)
     set(CMAKE_ASM_NASM_FLAGS_DEBUG "-g -F dwarf")
 
     target_link_options(BrickSmash PRIVATE

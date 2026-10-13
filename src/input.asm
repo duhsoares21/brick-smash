@@ -17,9 +17,6 @@ extern set_state
 extern state_machine
 extern current_state
 
-extern ball_x
-extern offset
-
 extern paddle_rect
 
 extern speed
