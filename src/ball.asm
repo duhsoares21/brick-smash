@@ -119,6 +119,9 @@ State_Machine:
                 push rbp
                 mov rbp, rsp
 
+                movss xmm0, [zero]
+                movss [offset], xmm0
+
                 mov rdi, 1
                 call Set_Ball_State
 

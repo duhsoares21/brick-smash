@@ -37,6 +37,7 @@ add_executable(BrickSmash
         src/main.asm
         src/window.asm
         src/main_menu.asm
+        src/brick.asm
         src/input.asm
         src/paddle.asm
         src/ball.asm

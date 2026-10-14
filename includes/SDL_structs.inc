@@ -19,3 +19,8 @@ endstruc
 %macro SDL_COLOR 4
     db %1, %2, %3, %4
 %endmacro
+
+%macro COPY_SDL_COLOR 2
+    mov eax, [%2]
+    mov [%1], eax
+%endmacro

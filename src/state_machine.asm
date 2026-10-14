@@ -4,6 +4,7 @@ default rel
 %include "../includes/state_machine.inc"
 
 extern MainMenu
+extern GameStart
 extern GameLoop
 
 extern current_state
@@ -41,6 +42,7 @@ state_machine:
 .game:
     push rbp
     mov rbp, rsp
+    call GameStart
     call GameLoop
     pop rbp
     ret

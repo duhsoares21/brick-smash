@@ -49,10 +49,17 @@ extern ball_color
 extern ball_color_glow
 extern ball_active_collision
 
+extern bricks_colors
+extern bricks_rectangles
+extern level_brick_count
+extern current_brick_count
+extern current_brick_index
+
 global Render
 
 section .data
     counter dd 0
+    render_brick_counter dd 0
     zero dd 0.0
 
 section .text
@@ -75,10 +82,10 @@ Render:
         mov rbp, rsp
 
         mov rdi, [renderer]
-        mov esi, [paddle_color + SDL_Color.r]
-        mov edx, [paddle_color + SDL_Color.g]
-        mov ecx, [paddle_color + SDL_Color.b]
-        mov r8d, [paddle_color + SDL_Color.a]
+        movzx esi, byte [paddle_color + SDL_Color.r]
+        movzx edx, byte [paddle_color + SDL_Color.g]
+        movzx ecx, byte [paddle_color + SDL_Color.b]
+        movzx r8d, byte [paddle_color + SDL_Color.a]
 
         call SDL_SetRenderDrawColor
 
@@ -88,10 +95,10 @@ Render:
 
         mov rdi, [renderer]
 
-        mov esi, [paddle_block_color + SDL_Color.r]
-        mov edx, [paddle_block_color + SDL_Color.g]
-        mov ecx, [paddle_block_color + SDL_Color.b]
-        mov r8d, [paddle_block_color + SDL_Color.a]
+        movzx esi, byte [paddle_block_color + SDL_Color.r]
+        movzx edx, byte [paddle_block_color + SDL_Color.g]
+        movzx ecx, byte [paddle_block_color + SDL_Color.b]
+        movzx r8d, byte [paddle_block_color + SDL_Color.a]
 
         call SDL_SetRenderDrawColor
 
@@ -137,10 +144,10 @@ Render:
             .active_color:
                 mov rdi, [renderer]
 
-                mov esi, [paddle_block_color_glow + SDL_Color.r]
-                mov edx, [paddle_block_color_glow + SDL_Color.g]
-                mov ecx, [paddle_block_color_glow + SDL_Color.b]
-                mov r8d, [paddle_block_color_glow + SDL_Color.a]
+                movzx esi, byte [paddle_block_color_glow + SDL_Color.r]
+                movzx edx, byte [paddle_block_color_glow + SDL_Color.g]
+                movzx ecx, byte [paddle_block_color_glow + SDL_Color.b]
+                movzx r8d, byte [paddle_block_color_glow + SDL_Color.a]
 
                 call SDL_SetRenderDrawColor
 
@@ -150,10 +157,10 @@ Render:
 
                 mov rdi, [renderer]
 
-                mov esi, [paddle_block_color + SDL_Color.r]
-                mov edx, [paddle_block_color + SDL_Color.g]
-                mov ecx, [paddle_block_color + SDL_Color.b]
-                mov r8d, [paddle_block_color + SDL_Color.a]
+                movzx esi, byte [paddle_block_color + SDL_Color.r]
+                movzx edx, byte [paddle_block_color + SDL_Color.g]
+                movzx ecx, byte [paddle_block_color + SDL_Color.b]
+                movzx r8d, byte [paddle_block_color + SDL_Color.a]
 
                 call SDL_SetRenderDrawColor
 
@@ -180,22 +187,58 @@ Render:
             je .collision_ball
 
             .default_ball:
-                mov esi, [ball_color + SDL_Color.r]
-                mov edx, [ball_color + SDL_Color.g]
-                mov ecx, [ball_color + SDL_Color.b]
-                mov r8d, [ball_color + SDL_Color.a]
+                movzx esi, byte [ball_color + SDL_Color.r]
+                movzx edx, byte [ball_color + SDL_Color.g]
+                movzx ecx, byte [ball_color + SDL_Color.b]
+                movzx r8d, byte [ball_color + SDL_Color.a]
 
                 call filledCircleRGBA
 
-                jmp .continue_draw
+                jmp .draw_bricks
 
             .collision_ball:
-                mov esi, [ball_color_glow + SDL_Color.r]
-                mov edx, [ball_color_glow + SDL_Color.g]
-                mov ecx, [ball_color_glow + SDL_Color.b]
-                mov r8d, [ball_color_glow + SDL_Color.a]
+                movzx esi, byte [ball_color_glow + SDL_Color.r]
+                movzx edx, byte [ball_color_glow + SDL_Color.g]
+                movzx ecx, byte [ball_color_glow + SDL_Color.b]
+                movzx r8d, byte [ball_color_glow + SDL_Color.a]
 
                 call filledCircleRGBA
+
+        .draw_bricks:
+
+            mov [render_brick_counter], 0
+
+            .draw_next_brick:
+                mov eax, [level_brick_count]
+
+                cmp [render_brick_counter], eax
+                je .continue_draw
+
+                lea r9, [bricks_colors]
+                mov eax, [render_brick_counter]
+                imul eax, SDL_Color_size
+
+                mov rdi, [renderer]
+
+                movzx esi, byte [r9 + rax + SDL_Color.r]
+                movzx edx, byte [r9 + rax + SDL_Color.g]
+                movzx ecx, byte [r9 + rax + SDL_Color.b]
+                movzx r8d, byte [r9 + rax + SDL_Color.a]
+
+                call SDL_SetRenderDrawColor
+
+                lea r9, [bricks_rectangles]
+                mov eax, [render_brick_counter]
+                imul eax, SDL_FRect_size
+
+                mov rdi, [renderer]
+                lea rsi, [r9 + rax]
+
+                call SDL_RenderFillRect
+
+                inc [render_brick_counter]
+
+                jmp .draw_next_brick
 
             .continue_draw:
 
