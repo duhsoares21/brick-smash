@@ -71,7 +71,8 @@ LoadLevel:
     ; XMM1 = Y
     ; R8D = Index
     ;=====================
-    lea rdi, [rdx + BrickMaterial.color]
+
+    mov rdi, rdx
     mov rdx, [rsi + BrickDefinition.width_blocks]
     mov rcx, [rsi + BrickDefinition.height_blocks]
     movss xmm0, [rsi + BrickDefinition.x]

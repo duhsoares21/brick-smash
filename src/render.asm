@@ -2,6 +2,7 @@ bits 64
 default rel
 
 %include "../includes/SDL_structs.inc"
+%include "../includes/bricks.inc"
 %include "../includes/state_machine.inc"
 
 %ifdef WIN32
@@ -49,7 +50,7 @@ extern ball_color
 extern ball_color_glow
 extern ball_active_collision
 
-extern bricks_colors
+extern bricks_materials
 extern bricks_rectangles
 extern level_brick_count
 extern current_brick_count
@@ -214,16 +215,19 @@ Render:
                 cmp [render_brick_counter], eax
                 je .continue_draw
 
-                lea r9, [bricks_colors]
+                lea r9, [bricks_materials]
                 mov eax, [render_brick_counter]
-                imul eax, SDL_Color_size
+                imul eax, BrickMaterial_size
+
+                cmp [r9 + rax + BrickMaterial.max_hits], 0
+                jle .increment
 
                 mov rdi, [renderer]
 
-                movzx esi, byte [r9 + rax + SDL_Color.r]
-                movzx edx, byte [r9 + rax + SDL_Color.g]
-                movzx ecx, byte [r9 + rax + SDL_Color.b]
-                movzx r8d, byte [r9 + rax + SDL_Color.a]
+                movzx esi, byte [r9 + rax + BrickMaterial.color + SDL_Color.r]
+                movzx edx, byte [r9 + rax + BrickMaterial.color + SDL_Color.g]
+                movzx ecx, byte [r9 + rax + BrickMaterial.color + SDL_Color.b]
+                movzx r8d, byte [r9 + rax + BrickMaterial.color + SDL_Color.a]
 
                 call SDL_SetRenderDrawColor
 
@@ -236,9 +240,9 @@ Render:
 
                 call SDL_RenderFillRect
 
-                inc [render_brick_counter]
-
-                jmp .draw_next_brick
+                .increment:
+                    inc [render_brick_counter]
+                    jmp .draw_next_brick
 
             .continue_draw:
 

@@ -2,13 +2,14 @@ bits 64
 default rel
 
 %include "../includes/SDL_structs.inc"
+%include "../includes/bricks.inc"
 
 %define MAX_BRICKS 256
 
 extern renderer
 
-global bricks_colors
 global bricks_rectangles
+global bricks_materials
 
 global Brick
 
@@ -22,8 +23,8 @@ section .bss
     width_in_blocks resd 1
     height_in_blocks resd 1
 
-    bricks_colors: resb SDL_Color_size * MAX_BRICKS
     bricks_rectangles: resb SDL_FRect_size * MAX_BRICKS
+    bricks_materials: resb BrickMaterial_size * MAX_BRICKS
 
 section .data
     base_width dd 28.0
@@ -35,7 +36,7 @@ Brick:
 
     ;=====================
     ; RDI = Color
-    ; RSI = Material (1 - Rock, 2 - Iron, 3 - Gold; Default = 1)
+    ; RSI = Material
     ; RDX = Width Size In Blocks (Default = 3)
     ; RCX = Height Size In Blocks (Default = 1)]
     ; XMMO = X
@@ -44,21 +45,49 @@ Brick:
 
     mov [index], r8d
 
-    lea r9, [bricks_colors]
+    lea r9, [bricks_materials]
     mov eax, [index]
-    imul eax, SDL_Color_size
+    imul eax, BrickMaterial_size
 
-    mov r10b, [rdi + SDL_Color.r]
-    mov byte [r9 + rax + SDL_Color.r], r10b
+    mov r10d, [rdi + BrickMaterial.id]
+    mov dword [r9 + rax + BrickMaterial.id], r10d
 
-    mov r10b, [rdi + SDL_Color.g]
-    mov byte [r9 + rax + SDL_Color.g], r10b
+    mov r10d, [rdi + BrickMaterial.max_hits]
+    mov dword [r9 + rax + BrickMaterial.max_hits], r10d
 
-    mov r10b, [rdi + SDL_Color.b]
-    mov byte [r9 + rax + SDL_Color.b], r10b
+    mov r10d, [rdi + BrickMaterial.breakable]
+    mov dword [r9 + rax + BrickMaterial.breakable], r10d
 
-    mov r10b, [rdi + SDL_Color.a]
-    mov byte [r9 + rax + SDL_Color.a], r10b
+    mov r10d, [rdi + BrickMaterial.breakable]
+    mov dword [r9 + rax + BrickMaterial.breakable], r10d
+
+    mov r10b, [rdi + BrickMaterial.color + SDL_Color.r]
+    mov byte [r9 + rax + BrickMaterial.color + SDL_Color.r], r10b
+
+    mov r10b, [rdi + BrickMaterial.color + SDL_Color.g]
+    mov byte [r9 + rax + BrickMaterial.color + SDL_Color.g], r10b
+
+    mov r10b, [rdi + BrickMaterial.color + SDL_Color.b]
+    mov byte [r9 + rax + BrickMaterial.color + SDL_Color.b], r10b
+
+    mov r10b, [rdi + BrickMaterial.color + SDL_Color.a]
+    mov byte [r9 + rax + BrickMaterial.color + SDL_Color.a], r10b
+
+    ;lea r9, [bricks_colors]
+    ;mov eax, [index]
+    ;imul eax, SDL_Color_size
+
+    ;mov r10b, [rdi + SDL_Color.r]
+    ;mov byte [r9 + rax + SDL_Color.r], r10b
+
+    ;mov r10b, [rdi + SDL_Color.g]
+    ;mov byte [r9 + rax + SDL_Color.g], r10b
+
+    ;mov r10b, [rdi + SDL_Color.b]
+    ;mov byte [r9 + rax + SDL_Color.b], r10b
+
+    ;mov r10b, [rdi + SDL_Color.a]
+    ;mov byte [r9 + rax + SDL_Color.a], r10b
 
     mov [width_in_blocks], edx
     mov [height_in_blocks], ecx

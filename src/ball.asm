@@ -2,8 +2,10 @@ bits 64
 default rel
 
 %include "../includes/ball_state_machine.inc"
+%include "../includes/bricks.inc"
 %include "../includes/SDL_structs.inc"
 
+extern bricks_materials
 extern bricks_rectangles
 extern level_brick_count
 
@@ -45,7 +47,7 @@ section .data
 
     ball_direction_x dd 1.0
     ball_direction_y dd -1.0
-    ball_speed dd 120.0
+    ball_speed dd 300.0
 
     current_state dd 1
     offset dd 0.0
@@ -309,6 +311,13 @@ Ball_Collision:
             cmp eax, [level_brick_count]
             je Continue
 
+            lea r9, [bricks_materials]
+            mov eax, [brick_counter]
+            imul eax, BrickMaterial_size
+
+            cmp [r9 + rax + BrickMaterial.max_hits], 0
+            jle .increment
+
             lea r9, [bricks_rectangles]
             mov eax, [brick_counter]
             imul eax, SDL_FRect_size
@@ -322,8 +331,7 @@ Ball_Collision:
             ucomiss xmm1, [zero]
             jbe .hit_brick_vertical
 
-            inc [brick_counter]
-            jmp .check_next_brick
+            jmp .increment
 
         .hit_brick_vertical:
 
@@ -333,12 +341,11 @@ Ball_Collision:
                 addss xmm1, [ball_radius]
 
                 ucomiss xmm1, xmm0
-                jae .hit_brick
+                jae .check_right_side_brick
 
-                jmp Continue
+                jmp .increment
 
             .check_right_side_brick:
-
                 movss xmm0, [r9 + rax + SDL_FRect.x]
                 addss xmm0, [r9 + rax + SDL_FRect.w]
                 movss xmm1, [ball_x]
@@ -347,7 +354,9 @@ Ball_Collision:
                 ucomiss xmm1, xmm0
                 jbe .hit_brick
 
-                jmp Continue
+                .increment:
+                    inc [brick_counter]
+                    jmp .check_next_brick
 
                 .hit_brick:
                     mov [ball_active_collision], 1
@@ -357,5 +366,18 @@ Ball_Collision:
                     mulss xmm0, xmm1
                     movss [ball_direction_y], xmm0
 
+                    lea r9, [bricks_materials]
+                    mov eax, [brick_counter]
+                    imul eax, BrickMaterial_size
+
+                    cmp [r9 + rax + BrickMaterial.max_hits], 0
+                    jg .reduce_hits
+
+                    jmp Continue
+
+                    .reduce_hits
+                        mov r10d, [r9 + rax + BrickMaterial.max_hits]
+                        dec r10d
+                        mov dword [r9 + rax + BrickMaterial.max_hits], r10d
     Continue:
         ret
