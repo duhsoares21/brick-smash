@@ -27,13 +27,16 @@ global ball_color_glow
 global offset
 
 global Ball
-global Ball_Collision
+global Ball_Wall_Collision
+global Ball_Paddle_Collision
 global Ball_Brick_Collision
 global Set_Ball_State
 global ball_active_collision
 
 section .bss
     brick_counter resd 1
+    previous_ball_x resd 1
+    previous_ball_y resd 1
 
 section .data
     zero dd 0.0
@@ -107,6 +110,8 @@ State_Machine:
             mulss xmm0, [ball_direction_x]
 
             movss xmm1, [ball_x]
+            movss [previous_ball_x], xmm1
+
             addss xmm1, xmm0
 
             movss [ball_x], xmm1
@@ -116,6 +121,7 @@ State_Machine:
             mulss xmm0, [ball_direction_y]
 
             movss xmm1, [ball_y]
+            movss [previous_ball_y], xmm1
             addss xmm1, xmm0
 
             movss [ball_y], xmm1
@@ -138,7 +144,7 @@ State_Machine:
                 pop rbp
 
 
-Ball_Collision:
+Ball_Wall_Collision:
     movss xmm0, [ball_x]
 
     movss xmm1, [ball_direction_x]
@@ -180,7 +186,7 @@ Ball_Collision:
             ucomiss xmm0, [top_screen_limit]
             jbe .vertical_invert
 
-            jmp .ball_paddle_collision
+            jmp Continue
 
         .vertical_invert:
             mov [ball_active_collision], 1
@@ -190,7 +196,9 @@ Ball_Collision:
             mulss xmm0, xmm1
             movss [ball_direction_y], xmm0
 
-        .ball_paddle_collision:
+            ret
+
+    Ball_Paddle_Collision:
             movss xmm0, [ball_direction_y]
             ucomiss xmm0, [zero]
             jb Continue
@@ -200,7 +208,20 @@ Ball_Collision:
             subss xmm1, [ball_radius]
 
             ucomiss xmm0, xmm1
-            jae .check_left_side_paddle
+            jae .check_vertical_bottom_paddle
+
+            jmp Continue
+
+        .check_vertical_bottom_paddle:
+
+            movss xmm0, [ball_y]
+            movss xmm1, [paddle_rect + SDL_FRect.y]
+            addss xmm1, [paddle_rect + SDL_FRect.h]
+
+            subss xmm1, [ball_radius]
+
+            ucomiss xmm0, xmm1
+            jbe .check_left_side_paddle
 
             jmp Continue
 
@@ -293,6 +314,11 @@ Ball_Collision:
             jbe Continue
 
         .hit_surface:
+            movss xmm0, [ball_direction_y]
+            ucomiss xmm0, [zero]
+
+            jbe Continue
+
             mov [ball_active_collision], 1
 
             movss xmm0, [ball_direction_y]
@@ -346,6 +372,16 @@ Ball_Collision:
                 jmp .increment
 
             .check_right_side_brick:
+
+                movss xmm0, [r9 + rax + SDL_FRect.x]
+                movss xmm1, [previous_ball_x]
+                subss xmm1, [ball_radius]
+
+                subss xmm1, xmm0
+
+                ucomiss xmm1, [zero]
+                jbe .hit_brick_side
+
                 movss xmm0, [r9 + rax + SDL_FRect.x]
                 addss xmm0, [r9 + rax + SDL_FRect.w]
                 movss xmm1, [ball_x]
@@ -359,6 +395,16 @@ Ball_Collision:
                     jmp .check_next_brick
 
                 .hit_brick:
+                    movss xmm0, [r9 + rax + SDL_FRect.x]
+                    addss xmm0, [r9 + rax + SDL_FRect.w]
+                    movss xmm1, [previous_ball_x]
+                    subss xmm1, [ball_radius]
+
+                    subss xmm1, xmm0
+
+                    ucomiss xmm1, [zero]
+                    jae .hit_brick_side
+
                     mov [ball_active_collision], 1
 
                     movss xmm0, [ball_direction_y]
@@ -375,9 +421,39 @@ Ball_Collision:
 
                     jmp Continue
 
-                    .reduce_hits
-                        mov r10d, [r9 + rax + BrickMaterial.max_hits]
-                        dec r10d
-                        mov dword [r9 + rax + BrickMaterial.max_hits], r10d
+                .hit_brick_side:
+                    mov [ball_active_collision], 1
+
+                    movss xmm0, [ball_direction_x]
+                    movss xmm1, [minus_one]
+                    mulss xmm0, xmm1
+                    movss [ball_direction_x], xmm0
+
+                    movss xmm0, [ball_direction_y]
+                    ucomiss xmm0, [zero]
+                    jbe .reverse_y
+
+                    jmp .check_max_hits
+
+                    .reverse_y:
+                        movss xmm0, [ball_direction_y]
+                        movss xmm1, [minus_one]
+                        mulss xmm0, xmm1
+                        movss [ball_direction_y], xmm0
+
+                    .check_max_hits:
+                        lea r9, [bricks_materials]
+                        mov eax, [brick_counter]
+                        imul eax, BrickMaterial_size
+
+                        cmp [r9 + rax + BrickMaterial.max_hits], 0
+                        jg .reduce_hits
+
+                        jmp Continue
+
+                .reduce_hits:
+                    mov r10d, [r9 + rax + BrickMaterial.max_hits]
+                    dec r10d
+                    mov dword [r9 + rax + BrickMaterial.max_hits], r10d
     Continue:
         ret

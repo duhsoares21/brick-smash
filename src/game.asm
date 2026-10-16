@@ -7,7 +7,8 @@ default rel
 
 extern Paddle
 extern Ball
-extern Ball_Collision
+extern Ball_Wall_Collision
+extern Ball_Paddle_Collision
 extern Ball_Brick_Collision
 extern Ball_Animation
 extern Brick
@@ -95,6 +96,7 @@ GameLoop:
     call Paddle
     call Ball_Animation
     call Ball
-    call Ball_Collision
+    call Ball_Paddle_Collision
+    call Ball_Wall_Collision
     call Ball_Brick_Collision
     ret
