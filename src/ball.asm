@@ -4,6 +4,17 @@ default rel
 %include "../includes/ball_state_machine.inc"
 %include "../includes/SDL_structs.inc"
 
+extern bricks_rectangles
+extern level_brick_count
+
+extern delta_time
+extern paddle_rect
+
+extern top_screen_limit
+extern left_screen_limit
+extern right_screen_limit
+extern bottom_screen_limit
+
 global ball_x
 global ball_y
 global ball_radius
@@ -14,16 +25,13 @@ global ball_color_glow
 global offset
 
 global Ball
+global Ball_Collision
+global Ball_Brick_Collision
 global Set_Ball_State
 global ball_active_collision
 
-extern delta_time
-extern paddle_rect
-
-extern top_screen_limit
-extern left_screen_limit
-extern right_screen_limit
-extern bottom_screen_limit
+section .bss
+    brick_counter resd 1
 
 section .data
     zero dd 0.0
@@ -113,7 +121,7 @@ State_Machine:
             ucomiss xmm1, [bottom_screen_limit]
             ja .change_ball_state
 
-            jmp Ball_Collision
+            jmp Continue
 
             .change_ball_state:
                 push rbp
@@ -291,6 +299,63 @@ Ball_Collision:
             movss [ball_direction_y], xmm0
 
             ret
+
+    Ball_Brick_Collision:
+        .hit_brick_check:
+            mov dword [brick_counter], 0
+
+        .check_next_brick:
+            mov eax, [brick_counter]
+            cmp eax, [level_brick_count]
+            je Continue
+
+            lea r9, [bricks_rectangles]
+            mov eax, [brick_counter]
+            imul eax, SDL_FRect_size
+
+            movss xmm0, [r9 + rax + SDL_FRect.y]
+            addss xmm0, [r9 + rax + SDL_FRect.h]
+            movss xmm1, [ball_y]
+            subss xmm1, [ball_radius]
+            subss xmm1, xmm0
+
+            ucomiss xmm1, [zero]
+            jbe .hit_brick_vertical
+
+            inc [brick_counter]
+            jmp .check_next_brick
+
+        .hit_brick_vertical:
+
+            .check_left_side_brick:
+                movss xmm0, [r9 + rax + SDL_FRect.x]
+                movss xmm1, [ball_x]
+                addss xmm1, [ball_radius]
+
+                ucomiss xmm1, xmm0
+                jae .hit_brick
+
+                jmp Continue
+
+            .check_right_side_brick:
+
+                movss xmm0, [r9 + rax + SDL_FRect.x]
+                addss xmm0, [r9 + rax + SDL_FRect.w]
+                movss xmm1, [ball_x]
+                subss xmm1, [ball_radius]
+
+                ucomiss xmm1, xmm0
+                jbe .hit_brick
+
+                jmp Continue
+
+                .hit_brick:
+                    mov [ball_active_collision], 1
+
+                    movss xmm0, [ball_direction_y]
+                    movss xmm1, [minus_one]
+                    mulss xmm0, xmm1
+                    movss [ball_direction_y], xmm0
 
     Continue:
         ret
