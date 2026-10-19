@@ -1,6 +1,8 @@
 bits 64
 default rel
 
+%include "../includes/state_machine.inc"
+
 %ifdef WIN32
     extern SDL_Init_sysv
     extern SDL_CreateWindowAndRenderer_sysv
@@ -45,10 +47,9 @@ default rel
     extern SDL_GetError
 %endif
 
-;extern printf
-
 extern input
 extern state_machine
+extern current_state
 extern Render
 extern GameLoop
 
@@ -175,6 +176,9 @@ create_window:
     jmp .poll_events
 
 .window_game_loop:
+    cmp [current_state], STATE_IN_GAME
+    jne .window_input
+
     call GameLoop
 
 .window_input:

@@ -3,13 +3,16 @@ default rel
 
 %include "../includes/SDL_structs.inc"
 %include "../includes/bricks.inc"
+%include "../includes/materials.inc"
 
 %define MAX_BRICKS 256
 
 extern renderer
 
 global bricks_rectangles
-global bricks_materials
+global bricks_definitions
+global bricks_hits
+global destroyed_bricks
 
 global Brick
 
@@ -22,9 +25,11 @@ section .bss
     material resd 1
     width_in_blocks resd 1
     height_in_blocks resd 1
+    destroyed_bricks resd 1
 
     bricks_rectangles: resb SDL_FRect_size * MAX_BRICKS
-    bricks_materials: resb BrickMaterial_size * MAX_BRICKS
+    bricks_definitions: resb BrickDefinition_size * MAX_BRICKS
+    bricks_hits: resd 1 * MAX_BRICKS
 
 section .data
     base_width dd 28.0
@@ -45,54 +50,58 @@ Brick:
 
     mov [index], r8d
 
-    lea r9, [bricks_materials]
+    lea r9, [bricks_definitions]
     mov eax, [index]
-    imul eax, BrickMaterial_size
+    imul eax, BrickDefinition_size
 
-    mov r10d, [rdi + BrickMaterial.id]
-    mov dword [r9 + rax + BrickMaterial.id], r10d
+    ;.x:                 resd 1 ; float
+    ;.y:                 resd 1 ; float
+    ;.width_blocks:      resd 1 ; inteiro
+    ;.height_blocks:     resd 1 ; inteiro
+    ;.material:          resd 1 ; inteiro
 
-    mov r10d, [rdi + BrickMaterial.max_hits]
-    mov dword [r9 + rax + BrickMaterial.max_hits], r10d
+    movss xmm0, [rdi + BrickDefinition.x]
+    movss dword [r9 + rax + BrickDefinition.x], xmm0
 
-    mov r10d, [rdi + BrickMaterial.breakable]
-    mov dword [r9 + rax + BrickMaterial.breakable], r10d
+    movss xmm0, [rdi + BrickDefinition.y]
+    movss dword [r9 + rax + BrickDefinition.y], xmm0
 
-    mov r10d, [rdi + BrickMaterial.breakable]
-    mov dword [r9 + rax + BrickMaterial.breakable], r10d
+    mov r10d, [rdi + BrickDefinition.width_blocks]
+    mov dword [r9 + rax + BrickDefinition.width_blocks], r10d
 
-    mov r10b, [rdi + BrickMaterial.color + SDL_Color.r]
-    mov byte [r9 + rax + BrickMaterial.color + SDL_Color.r], r10b
+    mov r10d, [rdi + BrickDefinition.height_blocks]
+    mov dword [r9 + rax + BrickDefinition.height_blocks], r10d
 
-    mov r10b, [rdi + BrickMaterial.color + SDL_Color.g]
-    mov byte [r9 + rax + BrickMaterial.color + SDL_Color.g], r10b
+    mov r10d, [rdi + BrickDefinition.material]
+    mov dword [r9 + rax + BrickDefinition.material], r10d
 
-    mov r10b, [rdi + BrickMaterial.color + SDL_Color.b]
-    mov byte [r9 + rax + BrickMaterial.color + SDL_Color.b], r10b
+    dec r10d; Obtém index da tabela
 
-    mov r10b, [rdi + BrickMaterial.color + SDL_Color.a]
-    mov byte [r9 + rax + BrickMaterial.color + SDL_Color.a], r10b
+    lea r12, [material_table]; acessa endereço da tabela em rdx
+    mov r12, [r12 + r10 * 8]; calcula endereço com base no index
 
-    ;lea r9, [bricks_colors]
-    ;mov eax, [index]
-    ;imul eax, SDL_Color_size
+    lea r9, [bricks_hits]
+    mov eax, [index]
+    imul eax, 4
 
-    ;mov r10b, [rdi + SDL_Color.r]
-    ;mov byte [r9 + rax + SDL_Color.r], r10b
+    mov edx, [r12 + BrickMaterial.max_hits]
+    mov [r9 + rax], edx
 
-    ;mov r10b, [rdi + SDL_Color.g]
-    ;mov byte [r9 + rax + SDL_Color.g], r10b
+    lea r9, [bricks_definitions]
+    mov eax, [index]
+    imul eax, BrickDefinition_size
 
-    ;mov r10b, [rdi + SDL_Color.b]
-    ;mov byte [r9 + rax + SDL_Color.b], r10b
-
-    ;mov r10b, [rdi + SDL_Color.a]
-    ;mov byte [r9 + rax + SDL_Color.a], r10b
-
+    mov edx, [r9 + rax + BrickDefinition.width_blocks]
     mov [width_in_blocks], edx
-    mov [height_in_blocks], ecx
+
+    mov edx, [r9 + rax + BrickDefinition.height_blocks]
+    mov [height_in_blocks], edx
+
+    movss xmm0, [r9 + rax + BrickDefinition.x]
     movss dword [x], xmm0
-    movss dword [y], xmm1
+
+    movss xmm0, [r9 + rax + BrickDefinition.y]
+    movss dword [y], xmm0
 
     cvtsi2ss xmm0, dword [width_in_blocks]
     mulss xmm0, [base_width]

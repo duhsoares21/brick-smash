@@ -3,11 +3,14 @@ default rel
 
 %include "../includes/ball_state_machine.inc"
 %include "../includes/bricks.inc"
+%include "../includes/materials.inc"
 %include "../includes/SDL_structs.inc"
 
-extern bricks_materials
+extern bricks_hits
+extern bricks_definitions
 extern bricks_rectangles
 extern level_brick_count
+extern destroyed_bricks
 
 extern delta_time
 extern paddle_rect
@@ -17,6 +20,7 @@ extern left_screen_limit
 extern right_screen_limit
 extern bottom_screen_limit
 
+global ball_x_start
 global ball_x
 global ball_y
 global ball_radius
@@ -44,6 +48,7 @@ section .data
     twenty dd 20.0
     minus_one dd -1.0
 
+    ball_x_start dd 270.0
     ball_x dd 270.0
     ball_y dd 736.0
     ball_radius dd 12.0
@@ -337,123 +342,231 @@ Ball_Wall_Collision:
             cmp eax, [level_brick_count]
             je Continue
 
-            lea r9, [bricks_materials]
+            lea r9, [bricks_hits]
             mov eax, [brick_counter]
-            imul eax, BrickMaterial_size
+            imul eax, 4
 
-            cmp [r9 + rax + BrickMaterial.max_hits], 0
+            cmp [r9 + rax], 0
             jle .increment
 
             lea r9, [bricks_rectangles]
             mov eax, [brick_counter]
             imul eax, SDL_FRect_size
 
-            movss xmm0, [r9 + rax + SDL_FRect.y]
-            addss xmm0, [r9 + rax + SDL_FRect.h]
-            movss xmm1, [ball_y]
-            subss xmm1, [ball_radius]
-            subss xmm1, xmm0
+            movss xmm0, [ball_direction_y]
+            ucomiss xmm0, [zero]
 
-            ucomiss xmm1, [zero]
-            jbe .hit_brick_vertical
+            jbe .check_hit_bottom
+            jae .check_hit_top
 
-            jmp .increment
-
-        .hit_brick_vertical:
-
-            .check_left_side_brick:
-                movss xmm0, [r9 + rax + SDL_FRect.x]
-                movss xmm1, [ball_x]
-                addss xmm1, [ball_radius]
-
-                ucomiss xmm1, xmm0
-                jae .check_right_side_brick
-
-                jmp .increment
-
-            .check_right_side_brick:
-
-                movss xmm0, [r9 + rax + SDL_FRect.x]
-                movss xmm1, [previous_ball_x]
+            .check_hit_bottom:
+                movss xmm0, [r9 + rax + SDL_FRect.y]
+                addss xmm0, [r9 + rax + SDL_FRect.h]
+                movss xmm1, [ball_y]
                 subss xmm1, [ball_radius]
-
                 subss xmm1, xmm0
 
                 ucomiss xmm1, [zero]
-                jbe .hit_brick_side
+                jbe .check_left_side_brick
 
-                movss xmm0, [r9 + rax + SDL_FRect.x]
-                addss xmm0, [r9 + rax + SDL_FRect.w]
-                movss xmm1, [ball_x]
+                jmp .increment
+
+            .check_hit_top
+                movss xmm0, [r9 + rax + SDL_FRect.y]
+                movss xmm1, [ball_y]
+                addss xmm1, [ball_radius]
+                subss xmm1, xmm0
+
+                ucomiss xmm1, [zero]
+                jae .check_left_side_brick
+
+                jmp .increment
+
+        .check_left_side_brick:
+            movss xmm0, [r9 + rax + SDL_FRect.x]
+            movss xmm1, [ball_x]
+            addss xmm1, [ball_radius]
+
+            ucomiss xmm1, xmm0
+            jae .check_previous_left_side_brick
+
+            jmp .increment
+
+        .check_previous_left_side_brick:
+
+            movss xmm0, [r9 + rax + SDL_FRect.x]
+            movss xmm1, [previous_ball_x]
+            subss xmm1, [ball_radius]
+
+            subss xmm1, xmm0
+
+            ucomiss xmm1, [zero]
+            jbe .hit_brick_side
+
+        .check_right_side_brick:
+            movss xmm0, [r9 + rax + SDL_FRect.x]
+            addss xmm0, [r9 + rax + SDL_FRect.w]
+            movss xmm1, [ball_x]
+            subss xmm1, [ball_radius]
+
+            ucomiss xmm1, xmm0
+            jbe .check_previous_right_side_brick
+
+            jmp .increment
+
+        .check_previous_right_side_brick:
+            movss xmm0, [r9 + rax + SDL_FRect.x]
+            addss xmm0, [r9 + rax + SDL_FRect.w]
+            movss xmm1, [previous_ball_x]
+            subss xmm1, [ball_radius]
+
+            subss xmm1, xmm0
+
+            ucomiss xmm1, [zero]
+            jae .hit_brick_side
+
+            movss xmm0, [ball_direction_y]
+            ucomiss xmm0, [zero]
+
+            jbe .check_previous_hit_bottom
+            jae .check_previous_hit_top
+
+        .increment:
+            inc [brick_counter]
+            jmp .check_next_brick
+
+
+        .check_previous_hit_bottom:
+            movss xmm0, [r9 + rax + SDL_FRect.y]
+            addss xmm0, [r9 + rax + SDL_FRect.h]
+            movss xmm1, [previous_ball_y]
+            subss xmm1, [ball_radius]
+
+            subss xmm1, xmm0
+
+            ucomiss xmm1, [zero]
+            jae .hit_brick
+
+            jmp .increment
+
+        .check_previous_hit_top:
+            movss xmm0, [r9 + rax + SDL_FRect.y]
+            movss xmm1, [previous_ball_y]
+            addss xmm1, [ball_radius]
+
+            subss xmm1, xmm0
+
+            ucomiss xmm1, [zero]
+            jbe .hit_brick
+
+            jmp .increment
+
+        .hit_brick:
+            mov [ball_active_collision], 1
+
+            movss xmm0, [ball_direction_y]
+            movss xmm1, [minus_one]
+            mulss xmm0, xmm1
+            movss [ball_direction_y], xmm0
+
+            lea r9, [bricks_hits]
+            mov eax, [brick_counter]
+            imul eax, 4
+
+            cmp [r9 + rax], 0
+            jg .reduce_hits
+
+            jmp Continue
+
+        .hit_brick_side:
+
+            movss xmm0, [r9 + rax + SDL_FRect.y]
+            movss xmm1, [ball_y]
+            addss xmm1, [ball_radius]
+            subss xmm1, xmm0
+
+            ucomiss xmm1, [zero]
+
+            jae .check_interlace
+
+            jmp .increment
+
+            .check_interlace:
+                movss xmm0, [r9 + rax + SDL_FRect.y]
+                addss xmm0, [r9 + rax + SDL_FRect.h]
+
+                movss xmm1, [ball_y]
                 subss xmm1, [ball_radius]
+                subss xmm1, xmm0
 
-                ucomiss xmm1, xmm0
-                jbe .hit_brick
+                ucomiss xmm1, [zero]
+                jbe .hit_side
 
-                .increment:
-                    inc [brick_counter]
-                    jmp .check_next_brick
+                jmp .increment
 
-                .hit_brick:
-                    movss xmm0, [r9 + rax + SDL_FRect.x]
-                    addss xmm0, [r9 + rax + SDL_FRect.w]
-                    movss xmm1, [previous_ball_x]
-                    subss xmm1, [ball_radius]
+            .hit_side:
+                mov [ball_active_collision], 1
 
-                    subss xmm1, xmm0
+                movss xmm0, [ball_direction_x]
+                movss xmm1, [minus_one]
+                mulss xmm0, xmm1
+                movss [ball_direction_x], xmm0
 
-                    ucomiss xmm1, [zero]
-                    jae .hit_brick_side
+                movss xmm0, [ball_direction_y]
+                ucomiss xmm0, [zero]
+                jbe .reverse_y
 
-                    mov [ball_active_collision], 1
+                jmp .check_max_hits
 
-                    movss xmm0, [ball_direction_y]
-                    movss xmm1, [minus_one]
-                    mulss xmm0, xmm1
-                    movss [ball_direction_y], xmm0
+            .reverse_y:
+                movss xmm0, [ball_direction_y]
+                movss xmm1, [minus_one]
+                mulss xmm0, xmm1
+                movss [ball_direction_y], xmm0
 
-                    lea r9, [bricks_materials]
-                    mov eax, [brick_counter]
-                    imul eax, BrickMaterial_size
+            .check_max_hits:
+                lea r9, [bricks_hits]
+                mov eax, [brick_counter]
+                imul eax, 4
 
-                    cmp [r9 + rax + BrickMaterial.max_hits], 0
-                    jg .reduce_hits
+                cmp [r9 + rax], 0
+                jg .reduce_hits
 
-                    jmp Continue
+                jmp Continue
 
-                .hit_brick_side:
-                    mov [ball_active_collision], 1
+        .reduce_hits:
+            lea r9, [bricks_hits]
+            mov eax, [brick_counter]
+            imul eax, 4
 
-                    movss xmm0, [ball_direction_x]
-                    movss xmm1, [minus_one]
-                    mulss xmm0, xmm1
-                    movss [ball_direction_x], xmm0
+            mov r10d, [r9 + rax]
+            dec r10d
 
-                    movss xmm0, [ball_direction_y]
-                    ucomiss xmm0, [zero]
-                    jbe .reverse_y
+            mov dword [r9 + rax], r10d
 
-                    jmp .check_max_hits
+            cmp [r9 + rax], 0
+            jle destroy_brick
 
-                    .reverse_y:
-                        movss xmm0, [ball_direction_y]
-                        movss xmm1, [minus_one]
-                        mulss xmm0, xmm1
-                        movss [ball_direction_y], xmm0
+            cmp [r9 + rax], 1
+            je .last_hit
 
-                    .check_max_hits:
-                        lea r9, [bricks_materials]
-                        mov eax, [brick_counter]
-                        imul eax, BrickMaterial_size
+            jmp .continue_reduce_hit
 
-                        cmp [r9 + rax + BrickMaterial.max_hits], 0
-                        jg .reduce_hits
+            .last_hit:
+                lea r9, [bricks_definitions]
+                mov eax, [brick_counter]
+                imul eax, BrickDefinition_size
 
-                        jmp Continue
+                mov edx, [r9 + rax + BrickDefinition.material]
+                dec edx
+                mov [r9 + rax + BrickDefinition.material], edx
 
-                .reduce_hits:
-                    mov r10d, [r9 + rax + BrickMaterial.max_hits]
-                    dec r10d
-                    mov dword [r9 + rax + BrickMaterial.max_hits], r10d
+            .continue_reduce_hit:
+                jmp .increment
+
+            destroy_brick:
+                mov eax, [destroyed_bricks]
+                inc eax
+                mov [destroyed_bricks], eax
     Continue:
         ret

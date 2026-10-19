@@ -43,6 +43,5 @@ state_machine:
     push rbp
     mov rbp, rsp
     call GameStart
-    call GameLoop
     pop rbp
     ret

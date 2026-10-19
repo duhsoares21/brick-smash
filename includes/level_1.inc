@@ -8,7 +8,7 @@
     dd %5 ; material
 %endmacro
 
-level_01_bricks:
+level_1_bricks:
     ;GREEN LINE
     LEVEL_BRICK 15.0,  10.0, 3, 1, 2
     LEVEL_BRICK 100.0, 10.0, 3, 1, 2
@@ -48,6 +48,6 @@ level_01_bricks:
     LEVEL_BRICK 270.0, 126.0, 3, 1, 14
     LEVEL_BRICK 355.0, 126.0, 3, 1, 14
     LEVEL_BRICK 440.0, 126.0, 3, 1, 14
-level_01_bricks_end:
+level_1_bricks_end:
 
-level_01_brick_count equ (level_01_bricks_end - level_01_bricks) / BrickDefinition_size
+level_1_brick_total equ (level_1_bricks_end - level_1_bricks) / BrickDefinition_size

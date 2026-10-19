@@ -3,6 +3,7 @@ default rel
 
 %include "../includes/SDL_structs.inc"
 %include "../includes/bricks.inc"
+%include "../includes/materials.inc"
 %include "../includes/state_machine.inc"
 
 %ifdef WIN32
@@ -50,7 +51,8 @@ extern ball_color
 extern ball_color_glow
 extern ball_active_collision
 
-extern bricks_materials
+extern bricks_hits
+extern bricks_definitions
 extern bricks_rectangles
 extern level_brick_count
 extern current_brick_count
@@ -215,19 +217,29 @@ Render:
                 cmp [render_brick_counter], eax
                 je .continue_draw
 
-                lea r9, [bricks_materials]
+                lea r9, [bricks_hits]
                 mov eax, [render_brick_counter]
-                imul eax, BrickMaterial_size
+                imul eax, 4
 
-                cmp [r9 + rax + BrickMaterial.max_hits], 0
+                cmp [r9 + rax], 0
                 jle .increment
+
+                lea r9, [bricks_definitions]
+                mov eax, [render_brick_counter]
+                imul eax, BrickDefinition_size
+
+                mov r11d, [r9 + rax + BrickDefinition.material]; id do material
+                dec r11d; Obtém index da tabela
+
+                lea r9, [material_table]; acessa endereço da tabela em r9
+                mov r9, [r9 + r11 * 8];
 
                 mov rdi, [renderer]
 
-                movzx esi, byte [r9 + rax + BrickMaterial.color + SDL_Color.r]
-                movzx edx, byte [r9 + rax + BrickMaterial.color + SDL_Color.g]
-                movzx ecx, byte [r9 + rax + BrickMaterial.color + SDL_Color.b]
-                movzx r8d, byte [r9 + rax + BrickMaterial.color + SDL_Color.a]
+                movzx esi, byte [r9 + BrickMaterial.color + SDL_Color.r]
+                movzx edx, byte [r9 + BrickMaterial.color + SDL_Color.g]
+                movzx ecx, byte [r9 + BrickMaterial.color + SDL_Color.b]
+                movzx r8d, byte [r9 + BrickMaterial.color + SDL_Color.a]
 
                 call SDL_SetRenderDrawColor
 

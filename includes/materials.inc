@@ -14,7 +14,7 @@ material_light_green:
 material_medium_green:
     istruc BrickMaterial
         at BrickMaterial.id,        dd 2
-        at BrickMaterial.max_hits,  dd 1
+        at BrickMaterial.max_hits,  dd 5
         at BrickMaterial.breakable, dd 1
         at BrickMaterial.color,     SDL_COLOR 67, 209, 125, 255
     iend
@@ -22,7 +22,7 @@ material_medium_green:
 material_dark_green:
     istruc BrickMaterial
         at BrickMaterial.id,        dd 3
-        at BrickMaterial.max_hits,  dd 1
+        at BrickMaterial.max_hits,  dd 6
         at BrickMaterial.breakable, dd 1
         at BrickMaterial.color,     SDL_COLOR 23, 77, 50, 255
     iend
@@ -38,7 +38,7 @@ material_light_blue:
 material_medium_blue:
     istruc BrickMaterial
         at BrickMaterial.id,        dd 5
-        at BrickMaterial.max_hits,  dd 1
+        at BrickMaterial.max_hits,  dd 4
         at BrickMaterial.breakable, dd 1
         at BrickMaterial.color,     SDL_COLOR 67, 185, 232, 255
     iend
@@ -46,7 +46,7 @@ material_medium_blue:
 material_dark_blue:
     istruc BrickMaterial
         at BrickMaterial.id,        dd 6
-        at BrickMaterial.max_hits,  dd 1
+        at BrickMaterial.max_hits,  dd 5
         at BrickMaterial.breakable, dd 1
         at BrickMaterial.color,     SDL_COLOR 23, 68, 95, 255
     iend
@@ -62,7 +62,7 @@ material_light_pink:
 material_medium_pink:
     istruc BrickMaterial
         at BrickMaterial.id,        dd 8
-        at BrickMaterial.max_hits,  dd 1
+        at BrickMaterial.max_hits,  dd 3
         at BrickMaterial.breakable, dd 1
         at BrickMaterial.color,     SDL_COLOR 232, 93, 158, 255
     iend
@@ -70,7 +70,7 @@ material_medium_pink:
 material_dark_pink:
     istruc BrickMaterial
         at BrickMaterial.id,        dd 9
-        at BrickMaterial.max_hits,  dd 1
+        at BrickMaterial.max_hits,  dd 4
         at BrickMaterial.breakable, dd 1
         at BrickMaterial.color,     SDL_COLOR 99, 39, 68, 255
     iend
@@ -86,7 +86,7 @@ material_light_yellow:
 material_medium_yellow:
     istruc BrickMaterial
         at BrickMaterial.id,        dd 11
-        at BrickMaterial.max_hits,  dd 1
+        at BrickMaterial.max_hits,  dd 2
         at BrickMaterial.breakable, dd 1
         at BrickMaterial.color,     SDL_COLOR 232, 197, 71, 255
     iend
@@ -94,7 +94,7 @@ material_medium_yellow:
 material_dark_yellow:
     istruc BrickMaterial
         at BrickMaterial.id,        dd 12
-        at BrickMaterial.max_hits,  dd 1
+        at BrickMaterial.max_hits,  dd 3
         at BrickMaterial.breakable, dd 1
         at BrickMaterial.color,     SDL_COLOR 98, 82, 29, 255
     iend
@@ -118,7 +118,7 @@ material_medium_purple:
 material_dark_purple:
     istruc BrickMaterial
         at BrickMaterial.id,        dd 15
-        at BrickMaterial.max_hits,  dd 1
+        at BrickMaterial.max_hits,  dd 2
         at BrickMaterial.breakable, dd 1
         at BrickMaterial.color,     SDL_COLOR 64, 48, 95, 255
     iend

@@ -13,6 +13,8 @@ global speed
 global paddle_rect
 global paddle_color
 
+global paddle_start_x
+
 global paddle_block_width
 global paddle_block_height
 global paddle_block_space
@@ -41,6 +43,8 @@ section .data
     paddle_animation_timer dd 0.0
     paddle_animation_speed dd 0.25
     active_block dd 0
+
+    paddle_start_x dd 170.0
 
     paddle_rect:
         SDL_FRECT 170.0, 750.0, 200.0, 24.0
