@@ -47,6 +47,10 @@ default rel
     extern SDL_GetError
 %endif
 
+extern LoadWAV
+extern PlayAudio
+extern FreeWAV
+
 extern input
 extern state_machine
 extern current_state
@@ -55,11 +59,30 @@ extern GameLoop
 
 extern target_framerate
 
+extern audio_stream
+
+extern audio_wall_data
+extern audio_wall_length
+extern audio_wall_stream
+
+extern audio_brick_data
+extern audio_brick_length
+extern audio_brick_stream
+
+extern audio_paddle_data
+extern audio_paddle_length
+extern audio_paddle_stream
+
+extern audio_lose_data
+extern audio_lose_length
+extern audio_lose_stream
+
 global create_window
 global window
 global renderer
 global delta_time
 
+%define SDL_INIT_AUDIO 0x10
 %define SDL_INIT_VIDEO 0x20
 %define SDL_INIT_GAMEPAD 0x2000
 %define SDL_EVENT_QUIT 0x100
@@ -72,6 +95,11 @@ section .rodata
     debug_msg   db "Debug: %.2f", 10, 0
     delta_msg db "Delta: %.9f", 10, 0
     success_msg db "SDL OK! Janela visivel.", 10, 0
+
+    audio_wall db "..\audio\wall.wav", 0
+    audio_brick db "..\audio\brick.wav", 0
+    audio_paddle db "..\audio\paddle.wav", 0
+    audio_lose db "..\audio\lose.wav", 0
 
     ns_per_second dd 1000000000.0
 
@@ -107,11 +135,43 @@ create_window:
     ; SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)
     ; --------------------------------------------------
 
-    mov edi, SDL_INIT_VIDEO | SDL_INIT_GAMEPAD
+    mov edi, SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_GAMEPAD
     call SDL_Init
 
     test al, al
     jz .error
+
+    lea rdi, [audio_wall]
+    lea rdx, [audio_wall_data]
+    lea rcx, [audio_wall_length]
+    call LoadWAV
+
+    mov rax, [audio_stream]
+    mov [audio_wall_stream], rax
+
+    lea rdi, [audio_brick]
+    lea rdx, [audio_brick_data]
+    lea rcx, [audio_brick_length]
+    call LoadWAV
+
+    mov rax, [audio_stream]
+    mov [audio_brick_stream], rax
+
+    lea rdi, [audio_paddle]
+    lea rdx, [audio_paddle_data]
+    lea rcx, [audio_paddle_length]
+    call LoadWAV
+
+    mov rax, [audio_stream]
+    mov [audio_paddle_stream], rax
+
+    lea rdi, [audio_lose]
+    lea rdx, [audio_lose_data]
+    lea rcx, [audio_lose_length]
+    call LoadWAV
+
+    mov rax, [audio_stream]
+    mov [audio_lose_stream], rax
 
     lea rdi, [title]
     mov esi, [window_width]
@@ -124,11 +184,6 @@ create_window:
 
     test al, al
     jz .error
-
-    ;lea rdi, [success_msg]
-    ;mov al, 0;Quantos Float Points foram usados
-
-    ;call printf
 
     call state_machine
 
@@ -321,6 +376,8 @@ create_window:
 
     mov rdi, [window]
     call SDL_DestroyWindow
+
+    call FreeWAV
 
     call SDL_Quit
 

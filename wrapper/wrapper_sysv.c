@@ -79,3 +79,39 @@ SYSV int filledCircleRGBA_sysv(SDL_Renderer *renderer, float x, float y, float r
                                Uint8 r, Uint8 g, Uint8 b, Uint8 a) {
     return filledCircleRGBA(renderer, x, y, rad, r, g, b, a);
 }
+
+/* =========== SDL AUDIO ============ */
+
+SYSV bool SDL_LoadWAV_sysv(const char *path, SDL_AudioSpec *spec, Uint8 **audio_buf, Uint32 *audio_len)
+{
+    return SDL_LoadWAV(path, spec, audio_buf, audio_len);
+}
+
+SYSV SDL_AudioStream * SDL_OpenAudioDeviceStream_sysv(SDL_AudioDeviceID devid, const SDL_AudioSpec *spec, SDL_AudioStreamCallback callback, void *userdata)
+{
+    return SDL_OpenAudioDeviceStream(devid, spec, callback, userdata);
+}
+
+SYSV bool SDL_PutAudioStreamData_sysv(SDL_AudioStream *stream, const void *buf, int len)
+{
+    return SDL_PutAudioStreamData(stream, buf, len);
+}
+
+SYSV bool SDL_ResumeAudioStreamDevice_sysv(SDL_AudioStream *stream)
+{
+    return SDL_ResumeAudioStreamDevice(stream);
+}
+
+SYSV void SDL_DestroyAudioStream_sysv(SDL_AudioStream *stream)
+{
+    return SDL_DestroyAudioStream(stream);
+}
+
+SYSV void SDL_free_sysv(void *mem)
+{
+    return SDL_free(mem);
+}
+
+
+
+

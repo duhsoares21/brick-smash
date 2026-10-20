@@ -35,6 +35,7 @@ target_include_directories(sysv_wrappers PRIVATE
 # ============================================================
 add_executable(BrickSmash
         src/main.asm
+        src/audio.asm
         src/window.asm
         src/main_menu.asm
         src/brick.asm

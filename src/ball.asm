@@ -1,10 +1,27 @@
-bits 64
 default rel
 
 %include "../includes/ball_state_machine.inc"
 %include "../includes/bricks.inc"
 %include "../includes/materials.inc"
 %include "../includes/SDL_structs.inc"
+
+extern PlayAudio
+
+extern audio_wall_data
+extern audio_wall_length
+extern audio_wall_stream
+
+extern audio_brick_data
+extern audio_brick_length
+extern audio_brick_stream
+
+extern audio_paddle_data
+extern audio_paddle_length
+extern audio_paddle_stream
+
+extern audio_lose_data
+extern audio_lose_length
+extern audio_lose_stream
 
 extern bricks_hits
 extern bricks_definitions
@@ -140,6 +157,11 @@ State_Machine:
                 push rbp
                 mov rbp, rsp
 
+                mov rdi, [audio_lose_stream]
+                mov rsi, [audio_lose_data]
+                mov edx, [audio_lose_length]
+                call PlayAudio
+
                 movss xmm0, [zero]
                 movss [offset], xmm0
 
@@ -177,6 +199,11 @@ Ball_Wall_Collision:
         jmp .vertical_ball_collision
 
         .invert:
+            mov rdi, [audio_wall_stream]
+            mov rsi, [audio_wall_data]
+            mov edx, [audio_wall_length]
+            call PlayAudio
+
             mov [ball_active_collision], 1
 
             movss xmm0, [ball_direction_x]
@@ -194,6 +221,11 @@ Ball_Wall_Collision:
             jmp Continue
 
         .vertical_invert:
+            mov rdi, [audio_wall_stream]
+            mov rsi, [audio_wall_data]
+            mov edx, [audio_wall_length]
+            call PlayAudio
+
             mov [ball_active_collision], 1
 
             movss xmm0, [ball_direction_y]
@@ -300,6 +332,11 @@ Ball_Wall_Collision:
             jmp .hit_surface
 
         .reverse_x:
+            mov rdi, [audio_paddle_stream]
+            mov rsi, [audio_paddle_data]
+            mov edx, [audio_paddle_length]
+            call PlayAudio
+
             movss xmm0, [ball_direction_x]
             movss xmm1, [minus_one]
             mulss xmm0, xmm1
@@ -319,6 +356,11 @@ Ball_Wall_Collision:
             jbe Continue
 
         .hit_surface:
+            mov rdi, [audio_paddle_stream]
+            mov rsi, [audio_paddle_data]
+            mov edx, [audio_paddle_length]
+            call PlayAudio
+
             movss xmm0, [ball_direction_y]
             ucomiss xmm0, [zero]
 
@@ -479,7 +521,6 @@ Ball_Wall_Collision:
             jmp Continue
 
         .hit_brick_side:
-
             movss xmm0, [r9 + rax + SDL_FRect.y]
             movss xmm1, [ball_y]
             addss xmm1, [ball_radius]
@@ -535,6 +576,11 @@ Ball_Wall_Collision:
                 jmp Continue
 
         .reduce_hits:
+            mov rdi, [audio_brick_stream]
+            mov rsi, [audio_brick_data]
+            mov edx, [audio_brick_length]
+            call PlayAudio
+
             lea r9, [bricks_hits]
             mov eax, [brick_counter]
             imul eax, 4
