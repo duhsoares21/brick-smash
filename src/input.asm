@@ -2,8 +2,11 @@ bits 64
 default rel
 
 %include "../includes/SDL_structs.inc"
+%include "../includes/ball.inc"
+%include "../includes/ball_state_machine.inc"
 %include "../includes/state_machine.inc"
 %include "../includes/input.inc"
+%include "../includes/powerups.inc"
 
 %ifdef WIN32
     extern SDL_GetKeyboardState_sysv
@@ -17,12 +20,17 @@ extern set_state
 extern state_machine
 extern current_state
 
+extern current_power
+
 extern paddle_rect
 
 extern speed
 extern delta_time
 extern left_screen_limit
 extern right_screen_limit
+
+extern balls
+extern total_balls
 
 extern Paddle
 extern Ball
@@ -39,6 +47,8 @@ section .rodata
 
 section .bss
     keyboard_state resq 1
+    ball_counter resd 1
+    index resd 1
 
 section .text
 
@@ -59,6 +69,9 @@ input:
     cmp byte [rax + SDL_SCANCODE_RIGHT], 0
     jne right_pressed
 
+    cmp byte [rax + SDL_SCANCODE_3], 0
+    jne three_pressed
+
 no_input:
     ret
 
@@ -71,7 +84,7 @@ return_pressed:
         .is_main_menu:
             push rbp
             mov rbp, rsp
-                mov rdi, 2
+                mov rdi, STATE_IN_GAME
                 call set_state
                 call state_machine
             pop rbp
@@ -84,12 +97,34 @@ space_pressed:
     jmp no_input
 
         .is_in_game:
-            push rbp
-            mov rbp, rsp
-                mov rdi, 2
+            mov dword [ball_counter], 0
+
+            .release_balls:
+                mov eax, [ball_counter]
+                cmp eax, [total_balls]
+                jge .end
+
+                mov esi, eax
+
+                lea r8, [balls]
+                imul eax, BallDefinition_size
+
+                cmp byte [r8 + rax + BallDefinition.is_active], 1
+                jne .next_ball
+
+                cmp dword [r8 + rax + BallDefinition.state], BALL_STATE_STICKY
+                jne .next_ball
+
+                mov edi, BALL_STATE_FREE
+                mov esi, [ball_counter]
                 call Set_Ball_State
-            pop rbp
-    ret
+
+                .next_ball:
+                    inc dword [ball_counter]
+                    jmp .release_balls
+
+                .end:
+                    ret
 
 left_pressed:
     cmp [current_state], STATE_IN_GAME
@@ -157,3 +192,8 @@ right_pressed:
             addss xmm0, xmm1
             movss [paddle_rect + SDL_FRect.x], xmm0
             ret
+
+three_pressed:
+    mov eax, POWER_3_BALLS
+    mov [current_power], eax
+    ret

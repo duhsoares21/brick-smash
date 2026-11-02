@@ -17,6 +17,11 @@ default rel
     extern SDL_DestroyWindow_sysv
     extern SDL_Quit_sysv
     extern SDL_GetError_sysv
+    extern MIX_Init_sysv
+    extern MIX_CreateMixerDevice_sysv
+    extern MIX_CreateTrack_sysv
+    extern MIX_SetTrackAudio_sysv
+    extern MIX_Quit_sysv
 
     %define SDL_Init                      SDL_Init_sysv
     %define SDL_CreateWindowAndRenderer   SDL_CreateWindowAndRenderer_sysv
@@ -31,6 +36,11 @@ default rel
     %define SDL_DestroyWindow             SDL_DestroyWindow_sysv
     %define SDL_Quit                      SDL_Quit_sysv
     %define SDL_GetError                  SDL_GetError_sysv
+    %define MIX_Init                      MIX_Init_sysv
+    %define MIX_CreateMixerDevice         MIX_CreateMixerDevice_sysv
+    %define MIX_CreateTrack               MIX_CreateTrack_sysv
+    %define MIX_SetTrackAudio             MIX_SetTrackAudio_sysv
+    %define MIX_Quit                      MIX_Quit_sysv
 %else
     extern SDL_Init
     extern SDL_CreateWindowAndRenderer
@@ -45,11 +55,16 @@ default rel
     extern SDL_DestroyWindow
     extern SDL_Quit
     extern SDL_GetError
+    extern MIX_Init
+    extern MIX_CreateMixerDevice
+    extern MIX_CreateTrack
+    extern MIX_SetTrackAudio
+    extern MIX_Quit
 %endif
 
+extern LoadAudio
 extern LoadWAV
 extern PlayAudio
-extern FreeWAV
 
 extern input
 extern state_machine
@@ -59,23 +74,17 @@ extern GameLoop
 
 extern target_framerate
 
-extern audio_stream
+extern mixer
 
-extern audio_wall_data
-extern audio_wall_length
-extern audio_wall_stream
+extern audio_wall
+extern audio_brick
+extern audio_paddle
+extern audio_lose
 
-extern audio_brick_data
-extern audio_brick_length
-extern audio_brick_stream
-
-extern audio_paddle_data
-extern audio_paddle_length
-extern audio_paddle_stream
-
-extern audio_lose_data
-extern audio_lose_length
-extern audio_lose_stream
+extern track_wall
+extern track_brick
+extern track_paddle
+extern track_lose
 
 global create_window
 global window
@@ -89,6 +98,8 @@ global delta_time
 
 %define SDL_SCANCODE_RETURN 40
 
+%define AUDIO_DEVICE 0xFFFFFFFF
+
 section .rodata
     title       db "Brick Smash", 0
     error_msg   db "SDL error: %s", 10, 0
@@ -96,10 +107,10 @@ section .rodata
     delta_msg db "Delta: %.9f", 10, 0
     success_msg db "SDL OK! Janela visivel.", 10, 0
 
-    audio_wall db "..\audio\wall.wav", 0
-    audio_brick db "..\audio\brick.wav", 0
-    audio_paddle db "..\audio\paddle.wav", 0
-    audio_lose db "..\audio\lose.wav", 0
+    sfx_wall db "..\audio\wall.wav", 0
+    sfx_brick db "..\audio\brick.wav", 0
+    sfx_paddle db "..\audio\paddle.wav", 0
+    sfx_lose db "..\audio\lose.wav", 0
 
     ns_per_second dd 1000000000.0
 
@@ -141,37 +152,85 @@ create_window:
     test al, al
     jz .error
 
-    lea rdi, [audio_wall]
-    lea rdx, [audio_wall_data]
-    lea rcx, [audio_wall_length]
-    call LoadWAV
+    call MIX_Init
 
-    mov rax, [audio_stream]
-    mov [audio_wall_stream], rax
+    mov edi, AUDIO_DEVICE
+    xor rsi, rsi
 
-    lea rdi, [audio_brick]
-    lea rdx, [audio_brick_data]
-    lea rcx, [audio_brick_length]
-    call LoadWAV
+    call MIX_CreateMixerDevice
+    mov qword [mixer], rax
 
-    mov rax, [audio_stream]
-    mov [audio_brick_stream], rax
+    ;=================
+    ;TRACK WALL
+    ;=================
 
-    lea rdi, [audio_paddle]
-    lea rdx, [audio_paddle_data]
-    lea rcx, [audio_paddle_length]
-    call LoadWAV
+    mov rdi, [mixer]
+    call MIX_CreateTrack
 
-    mov rax, [audio_stream]
-    mov [audio_paddle_stream], rax
+    mov [track_wall], rax
 
-    lea rdi, [audio_lose]
-    lea rdx, [audio_lose_data]
-    lea rcx, [audio_lose_length]
-    call LoadWAV
+    lea rdi, [sfx_wall]
+    call LoadAudio
 
-    mov rax, [audio_stream]
-    mov [audio_lose_stream], rax
+    mov [audio_wall], rax
+
+    mov rdi, [track_wall]
+    mov rsi, [audio_wall]
+    call MIX_SetTrackAudio
+
+    ;=================
+    ;TRACK BRICK
+    ;=================
+
+    mov rdi, [mixer]
+    call MIX_CreateTrack
+
+    mov [track_brick], rax
+
+    lea rdi, [sfx_brick]
+    call LoadAudio
+
+    mov [audio_brick], rax
+
+    mov rdi, [track_brick]
+    mov rsi, [audio_brick]
+    call MIX_SetTrackAudio
+
+    ;=================
+    ;TRACK PADDLE
+    ;=================
+
+    mov rdi, [mixer]
+    call MIX_CreateTrack
+
+    mov [track_paddle], rax
+
+    lea rdi, [sfx_paddle]
+    call LoadAudio
+
+    mov [audio_paddle], rax
+
+    mov rdi, [track_paddle]
+    mov rsi, [audio_paddle]
+    call MIX_SetTrackAudio
+
+    ;=================
+    ;TRACK LOSE
+    ;=================
+
+    mov rdi, [mixer]
+    call MIX_CreateTrack
+
+    mov [track_lose], rax
+
+    lea rdi, [sfx_lose]
+    call LoadAudio
+
+    mov [audio_lose], rax
+
+    mov rdi, [track_lose]
+    mov rsi, [audio_lose]
+    call MIX_SetTrackAudio
 
     lea rdi, [title]
     mov esi, [window_width]
@@ -377,7 +436,7 @@ create_window:
     mov rdi, [window]
     call SDL_DestroyWindow
 
-    call FreeWAV
+    call MIX_Quit
 
     call SDL_Quit
 

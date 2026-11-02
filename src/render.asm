@@ -2,6 +2,7 @@ bits 64
 default rel
 
 %include "../includes/SDL_structs.inc"
+%include "../includes/ball.inc"
 %include "../includes/bricks.inc"
 %include "../includes/materials.inc"
 %include "../includes/state_machine.inc"
@@ -43,13 +44,8 @@ extern paddle_block_color_glow
 
 extern active_block
 
-extern ball_x
-extern ball_y
-extern ball_radius
-
-extern ball_color
-extern ball_color_glow
-extern ball_active_collision
+extern balls
+extern total_balls
 
 extern bricks_hits
 extern bricks_definitions
@@ -59,6 +55,9 @@ extern current_brick_count
 extern current_brick_index
 
 global Render
+
+section .bss
+    render_ball_counter resd 1
 
 section .data
     counter dd 0
@@ -179,33 +178,49 @@ Render:
             jmp .add_paddle_block
 
         .draw_ball:
+            mov dword [render_ball_counter], 0
 
-            mov rdi, [renderer]
+            .draw_next_ball:
+                mov eax, [render_ball_counter]
+                cmp eax, [total_balls]
+                jge .draw_bricks
 
-            movss xmm0, [ball_x]
-            movss xmm1, [ball_y]
-            movss xmm2, [ball_radius]
+                lea r9, [balls]
+                imul eax, BallDefinition_size
 
-            cmp [ball_active_collision], 1
-            je .collision_ball
+                cmp byte [r9 + rax + BallDefinition.is_active], 0
+                je .next_ball
 
-            .default_ball:
-                movzx esi, byte [ball_color + SDL_Color.r]
-                movzx edx, byte [ball_color + SDL_Color.g]
-                movzx ecx, byte [ball_color + SDL_Color.b]
-                movzx r8d, byte [ball_color + SDL_Color.a]
+                mov rdi, [renderer]
 
-                call filledCircleRGBA
+                movss xmm0, [r9 + rax + BallDefinition.x]
+                movss xmm1, [r9 + rax + BallDefinition.y]
+                movss xmm2, [r9 + rax + BallDefinition.radius]
 
-                jmp .draw_bricks
+                cmp [r9 + rax + BallDefinition.collision], 1
+                je .collision_ball
 
-            .collision_ball:
-                movzx esi, byte [ball_color_glow + SDL_Color.r]
-                movzx edx, byte [ball_color_glow + SDL_Color.g]
-                movzx ecx, byte [ball_color_glow + SDL_Color.b]
-                movzx r8d, byte [ball_color_glow + SDL_Color.a]
+                .default_ball:
+                    movzx esi, byte [r9 + rax + BallDefinition.color + SDL_Color.r]
+                    movzx edx, byte [r9 + rax + BallDefinition.color + SDL_Color.g]
+                    movzx ecx, byte [r9 + rax + BallDefinition.color + SDL_Color.b]
+                    movzx r8d, byte [r9 + rax + BallDefinition.color + SDL_Color.a]
 
-                call filledCircleRGBA
+                    call filledCircleRGBA
+
+                    jmp .next_ball
+
+                .collision_ball:
+                    movzx esi, byte [r9 + rax + BallDefinition.color_glow + SDL_Color.r]
+                    movzx edx, byte [r9 + rax + BallDefinition.color_glow + SDL_Color.g]
+                    movzx ecx, byte [r9 + rax + BallDefinition.color_glow + SDL_Color.b]
+                    movzx r8d, byte [r9 + rax + BallDefinition.color_glow + SDL_Color.a]
+
+                    call filledCircleRGBA
+
+                .next_ball:
+                        inc dword [render_ball_counter]
+                        jmp .draw_next_ball
 
         .draw_bricks:
 

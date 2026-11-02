@@ -14,6 +14,7 @@ if(WIN32)
     set(CMAKE_ASM_NASM_OBJECT_FORMAT win64)
     enable_language(RC)
     add_subdirectory(external/SDL EXCLUDE_FROM_ALL)
+    add_subdirectory(external/SDL_mixer EXCLUDE_FROM_ALL)
 else()
     set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
 endif()
@@ -25,9 +26,14 @@ add_library(sysv_wrappers STATIC
         wrapper/wrapper_sysv.c
 )
 
+target_link_libraries(sysv_wrappers PRIVATE
+        SDL3_mixer::SDL3_mixer
+)
+
 target_include_directories(sysv_wrappers PRIVATE
         "${CMAKE_SOURCE_DIR}/external/SDL/include"
         "${CMAKE_SOURCE_DIR}/external/SDL3_gfx"
+        "${CMAKE_SOURCE_DIR}/external/SDL_mixer/include"
 )
 
 # ============================================================
@@ -41,6 +47,7 @@ add_executable(BrickSmash
         src/brick.asm
         src/input.asm
         src/paddle.asm
+        src/powerup.asm
         src/ball.asm
         src/ball_animation.asm
         src/collision.asm
@@ -79,18 +86,23 @@ if(WIN32)
     target_include_directories(BrickSmash PRIVATE
             "${CMAKE_SOURCE_DIR}/external/SDL/include"
             "${CMAKE_SOURCE_DIR}/external/SDL3_gfx"
+            "${CMAKE_SOURCE_DIR}/external/SDL_mixer/include"
     )
 
     # Ordem importante: wrappers depois das libs do SDL
     target_link_libraries(BrickSmash PRIVATE
             sysv_wrappers
             SDL3::SDL3
+            SDL3_mixer::SDL3_mixer
             "${SDL3_GFX_LIB}"
     )
 
     add_custom_command(TARGET BrickSmash POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "$<TARGET_FILE:SDL3::SDL3>"
+            "$<TARGET_FILE_DIR:BrickSmash>"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_FILE:SDL3_mixer::SDL3_mixer>"
             "$<TARGET_FILE_DIR:BrickSmash>"
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CMAKE_SOURCE_DIR}/external/SDL3_gfx/x64/Debug/SDL3_gfx.dll"

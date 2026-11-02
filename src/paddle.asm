@@ -81,8 +81,10 @@ Paddle:
         cmp eax, [paddle_block_quantity]
         jge .reset
 
-        .end:
-        ret
+        jmp .end
 
         .reset:
             mov [active_block], 0
+
+        .end:
+            ret

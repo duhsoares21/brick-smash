@@ -3,8 +3,8 @@
 struc BrickDefinition
     .x:                 resd 1 ; float
     .y:                 resd 1 ; float
-    .width_blocks:      resd 1 ; inteiro
-    .height_blocks:     resd 1 ; inteiro
+    .width:             resd 1 ; float
+    .height:            resd 1 ; float
     .material:          resd 1 ; inteiro
 endstruc
 

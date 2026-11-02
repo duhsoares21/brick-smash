@@ -1,4 +1,5 @@
 #include <SDL3/SDL.h>
+#include <../SDL_mixer/include/SDL3_mixer/SDL_mixer.h>
 #include <../SDL3_gfx/SDL3_gfxPrimitives.h>  // ajuste se o include for outro
 #include <stdio.h>
 #include <stdarg.h>
@@ -112,6 +113,53 @@ SYSV void SDL_free_sysv(void *mem)
     return SDL_free(mem);
 }
 
+SYSV const char *SDL_GetBasePath_sysv(void) {
+    return SDL_GetBasePath();
+}
+
+SYSV int SDL_asprintf_sysv(char **strp, const char *fmt, const char *arg1, const char *arg2)
+{
+    return SDL_asprintf(strp, fmt, arg1, arg2);
+}
+
+SYSV void SDL_Log_sysv(const char *fmt, const char *arg1, const char *arg2)
+{
+    SDL_Log(fmt, arg1, arg2);
+}
+
+SYSV MIX_Audio *MIX_LoadAudio_sysv(MIX_Mixer *mixer, const char *path, bool predecode)
+{
+    return MIX_LoadAudio(mixer, path, predecode);
+}
+
+SYSV MIX_Mixer *MIX_CreateMixerDevice_sysv(SDL_AudioDeviceID devid, const SDL_AudioSpec *spec)
+{
+    return MIX_CreateMixerDevice(devid, spec);
+}
+
+SYSV MIX_Track *MIX_CreateTrack_sysv(MIX_Mixer *mixer)
+{
+    return MIX_CreateTrack(mixer);
+}
+
+SYSV bool MIX_SetTrackAudio_sysv(MIX_Track *track, MIX_Audio *audio)
+{
+    return MIX_SetTrackAudio(track, audio);
+}
+
+SYSV bool MIX_PlayTrack_sysv(MIX_Track *track, SDL_PropertiesID options)
+{
+    return MIX_PlayTrack(track, options);
+}
+
+SYSV void MIX_Quit_sysv(void)
+{
+    MIX_Quit();
+}
+
+SYSV bool MIX_Init_sysv(void){
+    return MIX_Init();
+}
 
 
 

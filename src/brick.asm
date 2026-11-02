@@ -23,8 +23,6 @@ section .bss
     y resd 1
     index resd 1
     material resd 1
-    width_in_blocks resd 1
-    height_in_blocks resd 1
     destroyed_bricks resd 1
 
     bricks_rectangles: resb SDL_FRect_size * MAX_BRICKS
@@ -66,11 +64,11 @@ Brick:
     movss xmm0, [rdi + BrickDefinition.y]
     movss dword [r9 + rax + BrickDefinition.y], xmm0
 
-    mov r10d, [rdi + BrickDefinition.width_blocks]
-    mov dword [r9 + rax + BrickDefinition.width_blocks], r10d
+    mov r10d, [rdi + BrickDefinition.width]
+    mov dword [r9 + rax + BrickDefinition.width], r10d
 
-    mov r10d, [rdi + BrickDefinition.height_blocks]
-    mov dword [r9 + rax + BrickDefinition.height_blocks], r10d
+    mov r10d, [rdi + BrickDefinition.height]
+    mov dword [r9 + rax + BrickDefinition.height], r10d
 
     mov r10d, [rdi + BrickDefinition.material]
     mov dword [r9 + rax + BrickDefinition.material], r10d
@@ -91,27 +89,17 @@ Brick:
     mov eax, [index]
     imul eax, BrickDefinition_size
 
-    mov edx, [r9 + rax + BrickDefinition.width_blocks]
-    mov [width_in_blocks], edx
+    movss xmm0, [r9 + rax + BrickDefinition.width]
+    movss [width], xmm0
 
-    mov edx, [r9 + rax + BrickDefinition.height_blocks]
-    mov [height_in_blocks], edx
+    movss xmm0, [r9 + rax + BrickDefinition.height]
+    movss [height], xmm0
 
     movss xmm0, [r9 + rax + BrickDefinition.x]
     movss dword [x], xmm0
 
     movss xmm0, [r9 + rax + BrickDefinition.y]
     movss dword [y], xmm0
-
-    cvtsi2ss xmm0, dword [width_in_blocks]
-    mulss xmm0, [base_width]
-    movss [width], xmm0
-
-    cvtsi2ss xmm0, dword [height_in_blocks]
-    mulss xmm0, [base_height]
-    movss [height], xmm0
-
-    movss xmm0, [x]
 
     lea r9, [bricks_rectangles]
     mov eax, [index]
