@@ -145,11 +145,6 @@ section .bss
 
     event       resb 128
 
-    result_wall  resb 1
-    result_brick resb 1
-    error_wall resq 1
-
-
 section .text
 
 create_window:
@@ -192,11 +187,6 @@ create_window:
     mov rsi, [audio_wall]
     call MIX_SetTrackAudio
 
-    ; Testa WALL
-    mov rdi, [track_wall]
-    xor esi, esi
-    call MIX_PlayTrack
-
     ;=================
     ;TRACK BRICK
     ;=================
@@ -214,11 +204,6 @@ create_window:
     mov rdi, [track_brick]
     mov rsi, [audio_brick]
     call MIX_SetTrackAudio
-
-    ; Testa BRICK
-    mov rdi, [track_brick]
-    xor esi, esi
-    call MIX_PlayTrack
 
     ;=================
     ;TRACK PADDLE
