@@ -140,6 +140,9 @@ State_Machine:
             cmp [active_extra_balls], 2
             je .end
 
+            cmp dword [total_balls], MAX_BALLS
+            jae .end
+
             lea r8, [balls]
 
             mov edi, [total_balls]

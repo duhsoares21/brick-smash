@@ -43,8 +43,6 @@ global Ball_Brick_Collision
 global Set_Ball_State
 global ball_active_collision
 
-%define MAX_BALLS 10
-
 section .bss
     brick_counter resd 1
     previous_ball_x resd 1

@@ -1,5 +1,7 @@
 %include "SDL_structs.inc"
 
+MAX_BALLS equ 10
+
 struc BallDefinition
     .x_initial          resd 1 ; float
     .x:                 resd 1 ; float
