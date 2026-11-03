@@ -95,19 +95,17 @@ LoadAudio:
 
     mov qword [fname], rdi
 
-    lea rdi, [path]
-    lea rsi, [fname_string]
-
     call SDL_GetBasePath
     mov rdx, rax
 
+    lea rdi, [path]
+    lea rsi, [fname_string]
     mov rcx, [fname]
+
     call SDL_asprintf
 
     cmp eax, 0
     jl .error
-
-    ;audio = MIX_LoadAudio(mixer, path, false);
 
     mov rdi, [mixer]
     mov rsi, [path]

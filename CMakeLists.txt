@@ -1,6 +1,9 @@
+
 cmake_minimum_required(VERSION 3.20)
 
-# Windows: usar o compilador de recursos da mesma toolchain MinGW.
+# ============================================================
+# Windows: compilador de recursos MinGW
+# ============================================================
 if(CMAKE_HOST_WIN32)
     set(CMAKE_RC_COMPILER
             "C:/Program Files/JetBrains/CLion 2026.2.3.1/bin/mingw/bin/windres.exe"
@@ -10,31 +13,43 @@ endif()
 
 project(BrickSmash LANGUAGES C ASM_NASM)
 
+# ============================================================
+# Dependências e configuração da plataforma
+# ============================================================
 if(WIN32)
     set(CMAKE_ASM_NASM_OBJECT_FORMAT win64)
+
     enable_language(RC)
+
     add_subdirectory(external/SDL EXCLUDE_FROM_ALL)
     add_subdirectory(external/SDL_mixer EXCLUDE_FROM_ALL)
+
+    # ========================================================
+    # Wrappers System V
+    # ========================================================
+    add_library(sysv_wrappers STATIC
+            wrapper/wrapper_sysv.c
+    )
+
+    target_link_libraries(sysv_wrappers PRIVATE
+            SDL3_mixer::SDL3_mixer
+    )
+
+    target_include_directories(sysv_wrappers PRIVATE
+            "${CMAKE_SOURCE_DIR}/external/SDL/include"
+            "${CMAKE_SOURCE_DIR}/external/SDL3_gfx"
+            "${CMAKE_SOURCE_DIR}/external/SDL_mixer/include"
+    )
+
 else()
     set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
+
+    # SDL3 instalado no sistema
+    find_package(SDL3 REQUIRED CONFIG)
+
+    # SDL3_mixer compilado a partir do código-fonte
+    add_subdirectory("${CMAKE_SOURCE_DIR}/external/SDL_mixer" EXCLUDE_FROM_ALL)
 endif()
-
-# ============================================================
-# Wrappers System V
-# ============================================================
-add_library(sysv_wrappers STATIC
-        wrapper/wrapper_sysv.c
-)
-
-target_link_libraries(sysv_wrappers PRIVATE
-        SDL3_mixer::SDL3_mixer
-)
-
-target_include_directories(sysv_wrappers PRIVATE
-        "${CMAKE_SOURCE_DIR}/external/SDL/include"
-        "${CMAKE_SOURCE_DIR}/external/SDL3_gfx"
-        "${CMAKE_SOURCE_DIR}/external/SDL_mixer/include"
-)
 
 # ============================================================
 # Executável
@@ -64,8 +79,12 @@ target_compile_options(BrickSmash PRIVATE
         $<$<AND:$<COMPILE_LANGUAGE:ASM_NASM>,$<BOOL:${WIN32}>>:-DWIN32>
 )
 
+# ============================================================
+# Configuração de Debug e Linker
+# ============================================================
 if(WIN32)
     set(CMAKE_ASM_NASM_FLAGS_DEBUG "-g -F cv8")
+
 elseif(UNIX AND NOT APPLE)
     set(CMAKE_ASM_NASM_FLAGS_DEBUG "-g -F dwarf")
 
@@ -79,6 +98,7 @@ endif()
 # Linkagem
 # ============================================================
 if(WIN32)
+
     set(SDL3_GFX_LIB
             "${CMAKE_SOURCE_DIR}/external/SDL3_gfx/x64/Debug/SDL3_gfx.lib"
     )
@@ -101,21 +121,37 @@ if(WIN32)
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "$<TARGET_FILE:SDL3::SDL3>"
             "$<TARGET_FILE_DIR:BrickSmash>"
+
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "$<TARGET_FILE:SDL3_mixer::SDL3_mixer>"
             "$<TARGET_FILE_DIR:BrickSmash>"
+
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CMAKE_SOURCE_DIR}/external/SDL3_gfx/x64/Debug/SDL3_gfx.dll"
             "$<TARGET_FILE_DIR:BrickSmash>"
+
             VERBATIM
     )
+
 else()
-    target_link_libraries(BrickSmash PRIVATE
-            SDL3
-            SDL3_gfx
+
+    target_include_directories(BrickSmash PRIVATE
+            "${CMAKE_SOURCE_DIR}/external/SDL/include"
+            "${CMAKE_SOURCE_DIR}/external/SDL3_gfx"
+            "${CMAKE_SOURCE_DIR}/external/SDL_mixer/include"
     )
+
+    target_link_libraries(BrickSmash PRIVATE
+            SDL3::SDL3
+            SDL3_gfx
+            SDL3_mixer::SDL3_mixer
+    )
+
 endif()
 
+# ============================================================
+# Propriedades do executável
+# ============================================================
 set_target_properties(BrickSmash PROPERTIES
         LINKER_LANGUAGE C
 )

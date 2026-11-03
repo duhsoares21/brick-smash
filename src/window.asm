@@ -60,6 +60,8 @@ default rel
     extern MIX_CreateTrack
     extern MIX_SetTrackAudio
     extern MIX_Quit
+
+    extern MIX_PlayTrack
 %endif
 
 extern LoadAudio
@@ -107,10 +109,17 @@ section .rodata
     delta_msg db "Delta: %.9f", 10, 0
     success_msg db "SDL OK! Janela visivel.", 10, 0
 
-    sfx_wall db "..\audio\wall.wav", 0
-    sfx_brick db "..\audio\brick.wav", 0
-    sfx_paddle db "..\audio\paddle.wav", 0
-    sfx_lose db "..\audio\lose.wav", 0
+    %ifdef WIN32
+        sfx_wall   db "..\audio\wall.wav", 0
+        sfx_brick  db "..\audio\brick.wav", 0
+        sfx_paddle db "..\audio\paddle.wav", 0
+        sfx_lose   db "..\audio\lose.wav", 0
+    %else
+        sfx_wall   db "../audio/wall.wav", 0
+        sfx_brick  db "../audio/brick.wav", 0
+        sfx_paddle db "../audio/paddle.wav", 0
+        sfx_lose   db "../audio/lose.wav", 0
+    %endif
 
     ns_per_second dd 1000000000.0
 
@@ -135,6 +144,11 @@ section .bss
     delta_time      resd 1
 
     event       resb 128
+
+    result_wall  resb 1
+    result_brick resb 1
+    error_wall resq 1
+
 
 section .text
 
@@ -178,6 +192,11 @@ create_window:
     mov rsi, [audio_wall]
     call MIX_SetTrackAudio
 
+    ; Testa WALL
+    mov rdi, [track_wall]
+    xor esi, esi
+    call MIX_PlayTrack
+
     ;=================
     ;TRACK BRICK
     ;=================
@@ -195,6 +214,11 @@ create_window:
     mov rdi, [track_brick]
     mov rsi, [audio_brick]
     call MIX_SetTrackAudio
+
+    ; Testa BRICK
+    mov rdi, [track_brick]
+    xor esi, esi
+    call MIX_PlayTrack
 
     ;=================
     ;TRACK PADDLE
