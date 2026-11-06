@@ -5,6 +5,10 @@ default rel
 %include "../includes/ball_state_machine.inc"
 %include "../includes/powerups.inc"
 
+extern Resize_Paddle
+extern default_paddle_blocks_quantity
+extern paddle_current_blocks_quantity
+
 extern balls
 extern total_balls
 
@@ -18,6 +22,8 @@ global PowerUps
 section .data
     ball_counter dd 0
     active_extra_balls dd 0
+
+    large_paddle_blocks_quantity dd 11
 
     current_power dd POWER_NONE
     previous_power dd POWER_NONE
@@ -47,7 +53,6 @@ State_Machine:
     je .end
 
     .check_powers:
-
         cmp [current_power], POWER_3_BALLS
         je .power_3_balls
 
@@ -60,6 +65,13 @@ State_Machine:
         jmp .end
 
     .power_3_balls:
+
+        mov eax, [default_paddle_blocks_quantity]
+        mov [paddle_current_blocks_quantity], eax
+
+        sub rsp, 8
+        call Resize_Paddle
+        add rsp, 8
 
         mov [previous_power], POWER_3_BALLS
         mov dword [ball_counter], 0
@@ -193,10 +205,26 @@ State_Machine:
         jmp .end
 
         .power_stick_paddle:
+
+            mov eax, [default_paddle_blocks_quantity]
+            mov [paddle_current_blocks_quantity], eax
+
+            sub rsp, 8
+            call Resize_Paddle
+            add rsp, 8
+
             ret
 
         .power_large_paddle:
-            ret
+
+            mov eax, [large_paddle_blocks_quantity]
+            mov [paddle_current_blocks_quantity], eax
+
+            sub rsp, 8
+            call Resize_Paddle
+            add rsp, 8
+
+            jmp .end
 
     .end:
         ret

@@ -453,23 +453,36 @@ Ball_Paddle_Collision:
         mov ecx, [index]
         imul ecx, BallDefinition_size
 
-        movss xmm0, [r8 + rcx + BallDefinition.direction_x]
-        movss xmm1, [minus_one]
-        mulss xmm0, xmm1
-        movss [r8 + rcx + BallDefinition.direction_x], xmm0
+        cmp [current_power], POWER_STICKY_PADDLE
+        je .sticky_power_corner
 
-        movss xmm0, [r8 + rcx + BallDefinition.direction_y]
-        movss xmm1, [paddle_rect + SDL_FRect.y]
+        jmp .proceed_reverse_x
 
-        movss xmm2, [paddle_rect + SDL_FRect.h]
-        divss xmm2, [two]
+        .sticky_power_corner:
+            mov edi, BALL_STATE_STICKY
+            mov esi, [index]
+            sub rsp, 8
+            call Set_Ball_State
+            add rsp, 8
 
-        addss xmm1, xmm2
+        .proceed_reverse_x:
+            movss xmm0, [r8 + rcx + BallDefinition.direction_x]
+            movss xmm1, [minus_one]
+            mulss xmm0, xmm1
+            movss [r8 + rcx + BallDefinition.direction_x], xmm0
 
-        subss xmm0, [r8 + rcx + BallDefinition.radius]
+            movss xmm0, [r8 + rcx + BallDefinition.direction_y]
+            movss xmm1, [paddle_rect + SDL_FRect.y]
 
-        ucomiss xmm0, xmm1
-        jbe Continue
+            movss xmm2, [paddle_rect + SDL_FRect.h]
+            divss xmm2, [two]
+
+            addss xmm1, xmm2
+
+            subss xmm0, [r8 + rcx + BallDefinition.radius]
+
+            ucomiss xmm0, xmm1
+            jbe Continue
 
     .hit_surface:
         mov rdi, [track_paddle]
@@ -479,17 +492,30 @@ Ball_Paddle_Collision:
         mov ecx, [index]
         imul ecx, BallDefinition_size
 
-        movss xmm0, [r8 + rcx + BallDefinition.direction_y]
-        ucomiss xmm0, [zero]
+        cmp [current_power], POWER_STICKY_PADDLE
+        je .sticky_power_surface
 
-        jbe Continue
+        jmp .proceed_surface
 
-        mov DWORD [r8 + rcx + BallDefinition.collision], 1
+        .sticky_power_surface:
+            mov edi, BALL_STATE_STICKY
+            mov esi, [index]
+            sub rsp, 8
+            call Set_Ball_State
+            add rsp, 8
 
-        movss xmm0, [r8 + rcx + BallDefinition.direction_y]
-        movss xmm1, [minus_one]
-        mulss xmm0, xmm1
-        movss [r8 + rcx + BallDefinition.direction_y], xmm0
+        .proceed_surface:
+            movss xmm0, [r8 + rcx + BallDefinition.direction_y]
+            ucomiss xmm0, [zero]
+
+            jbe Continue
+
+            mov DWORD [r8 + rcx + BallDefinition.collision], 1
+
+            movss xmm0, [r8 + rcx + BallDefinition.direction_y]
+            movss xmm1, [minus_one]
+            mulss xmm0, xmm1
+            movss [r8 + rcx + BallDefinition.direction_y], xmm0
 
         ret
 

@@ -69,6 +69,12 @@ input:
     cmp byte [rax + SDL_SCANCODE_RIGHT], 0
     jne right_pressed
 
+    cmp byte [rax + SDL_SCANCODE_1], 0
+    jne one_pressed
+
+    cmp byte [rax + SDL_SCANCODE_2], 0
+    jne two_pressed
+
     cmp byte [rax + SDL_SCANCODE_3], 0
     jne three_pressed
 
@@ -193,7 +199,17 @@ right_pressed:
             movss [paddle_rect + SDL_FRect.x], xmm0
             ret
 
-three_pressed:
+one_pressed:
     mov eax, POWER_3_BALLS
+    mov [current_power], eax
+    ret
+
+two_pressed:
+    mov eax, POWER_STICKY_PADDLE
+    mov [current_power], eax
+    ret;
+
+three_pressed:
+    mov eax, POWER_LARGE_PADDLE
     mov [current_power], eax
     ret

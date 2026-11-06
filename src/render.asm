@@ -35,7 +35,7 @@ extern paddle_color
 extern paddle_block_width
 extern paddle_block_height
 extern paddle_block_space
-extern paddle_block_quantity
+extern paddle_current_blocks_quantity
 extern paddle_block_y
 
 extern paddle_block_rect
@@ -109,7 +109,7 @@ Render:
         .add_paddle_block:
             mov eax, [counter]
 
-            cmp eax, [paddle_block_quantity]
+            cmp eax, [paddle_current_blocks_quantity]
             jge .draw_ball
 
             movss xmm0, [paddle_rect + SDL_FRect.x]

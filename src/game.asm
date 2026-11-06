@@ -10,7 +10,9 @@ default rel
 %include "../includes/level_3.inc"
 %include "../includes/level_4.inc"
 
+extern Initialize_Paddle
 extern Paddle
+
 extern Ball
 extern Initialize_Ball
 extern Ball_Wall_Collision
@@ -132,28 +134,9 @@ LoadLevel:
         call Initialize_Ball
     add rsp, 16
 
-    mov edi, 1
-
-    movss xmm0, [ball_x]
-    movss xmm1, [ball_y]
-    movss xmm2, [ball_radius]
-    movss xmm3, [ball_direction_x]
-    movss xmm4, [ball_direction_y]
-    movss xmm5, [ball_speed]
-    movss xmm6, [ball_offset]
-
-    mov esi, BALL_STATE_STICKY
-    mov edx, [ball_active_collision]
-
-    lea rcx, [ball_color]
-    lea r8, [ball_color_glow]
-
-    mov r9b, 0
-
-    sub rsp, 16
-        mov byte [rsp + 8], 1
-        call Initialize_Ball
-    add rsp, 16
+    sub rsp, 8
+        call Initialize_Paddle
+    add rsp, 8
 
     cmp dword [current_level], 1
     je .level_1
