@@ -4,6 +4,8 @@ default rel
 %include "../includes/state_machine.inc"
 
 %ifdef WIN32
+    extern TTF_Init_sysv
+
     extern SDL_Init_sysv
     extern SDL_CreateWindowAndRenderer_sysv
     extern SDL_PollEvent_sysv
@@ -42,6 +44,15 @@ default rel
     %define MIX_SetTrackAudio             MIX_SetTrackAudio_sysv
     %define MIX_Quit                      MIX_Quit_sysv
 %else
+    extern TTF_Init
+    extern TTF_OpenFont
+    extern TTF_RenderText_Blended
+    extern SDL_CreateTextureFromSurface
+    extern SDL_FreeSurface
+    extern SDL_RenderCopy
+    extern TTF_CloseFont
+    extern TTF_Quit
+
     extern SDL_Init
     extern SDL_CreateWindowAndRenderer
     extern SDL_PollEvent
@@ -63,6 +74,9 @@ default rel
 
     extern MIX_PlayTrack
 %endif
+
+extern InitText
+extern LoadFont
 
 extern LoadAudio
 extern LoadWAV
@@ -160,6 +174,9 @@ create_window:
 
     test al, al
     jz .error
+
+    call InitText
+    call LoadFont
 
     call MIX_Init
 

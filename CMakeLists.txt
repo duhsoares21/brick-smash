@@ -23,6 +23,7 @@ if(WIN32)
 
     add_subdirectory(external/SDL EXCLUDE_FROM_ALL)
     add_subdirectory(external/SDL_mixer EXCLUDE_FROM_ALL)
+    add_subdirectory(external/SDL_ttf EXCLUDE_FROM_ALL)
 
     # ========================================================
     # Wrappers System V
@@ -39,6 +40,7 @@ if(WIN32)
             "${CMAKE_SOURCE_DIR}/external/SDL/include"
             "${CMAKE_SOURCE_DIR}/external/SDL3_gfx"
             "${CMAKE_SOURCE_DIR}/external/SDL_mixer/include"
+            "${CMAKE_SOURCE_DIR}/external/SDL_ttf/include"
     )
 
 else()
@@ -49,6 +51,7 @@ else()
 
     # SDL3_mixer compilado a partir do código-fonte
     add_subdirectory("${CMAKE_SOURCE_DIR}/external/SDL_mixer" EXCLUDE_FROM_ALL)
+    add_subdirectory("${CMAKE_SOURCE_DIR}/external/SDL_ttf" EXCLUDE_FROM_ALL)
 endif()
 
 # ============================================================
@@ -60,9 +63,11 @@ add_executable(BrickSmash
         src/window.asm
         src/main_menu.asm
         src/brick.asm
+        src/HUD.asm
         src/input.asm
         src/paddle.asm
         src/powerup.asm
+        src/score.asm
         src/ball.asm
         src/ball_animation.asm
         src/collision.asm
@@ -107,12 +112,14 @@ if(WIN32)
             "${CMAKE_SOURCE_DIR}/external/SDL/include"
             "${CMAKE_SOURCE_DIR}/external/SDL3_gfx"
             "${CMAKE_SOURCE_DIR}/external/SDL_mixer/include"
+            "${CMAKE_SOURCE_DIR}/external/SDL_ttf/include"
     )
 
     # Ordem importante: wrappers depois das libs do SDL
     target_link_libraries(BrickSmash PRIVATE
             sysv_wrappers
             SDL3::SDL3
+            SDL3_ttf::SDL3_ttf
             SDL3_mixer::SDL3_mixer
             "${SDL3_GFX_LIB}"
     )
@@ -124,6 +131,10 @@ if(WIN32)
 
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "$<TARGET_FILE:SDL3_mixer::SDL3_mixer>"
+            "$<TARGET_FILE_DIR:BrickSmash>"
+
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_FILE:SDL3_ttf::SDL3_ttf>"
             "$<TARGET_FILE_DIR:BrickSmash>"
 
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -139,10 +150,12 @@ else()
             "${CMAKE_SOURCE_DIR}/external/SDL/include"
             "${CMAKE_SOURCE_DIR}/external/SDL3_gfx"
             "${CMAKE_SOURCE_DIR}/external/SDL_mixer/include"
+            "${CMAKE_SOURCE_DIR}/external/SDL_ttf/include"
     )
 
     target_link_libraries(BrickSmash PRIVATE
             SDL3::SDL3
+            SDL3_ttf::SDL3_ttf
             SDL3_gfx
             SDL3_mixer::SDL3_mixer
     )

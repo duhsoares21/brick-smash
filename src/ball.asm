@@ -7,6 +7,12 @@ default rel
 %include "../includes/powerups.inc"
 %include "../includes/SDL_structs.inc"
 
+extern score
+extern hiscore
+
+extern AddScore
+extern UpdateHiScore
+
 extern current_power
 extern previous_power
 extern active_extra_balls
@@ -788,6 +794,21 @@ Ball_Brick_Collision:
         mov rdi, [track_brick]
         call PlayAudio
 
+        mov rdi, BRICK_HIT_POINTS
+        call AddScore
+
+        mov rax, [score]
+        cmp rax, [hiscore]
+
+        jae .update_hiscore
+
+        jmp .brick_hits_check
+
+        .update_hiscore:
+            mov rdi, rdx
+            call UpdateHiScore
+
+        .brick_hits_check:
         lea r9, [bricks_hits]
         mov eax, [brick_counter]
         imul eax, 4
@@ -818,6 +839,34 @@ Ball_Brick_Collision:
             jmp .increment
 
         destroy_brick:
+
+            lea r9, [bricks_definitions]
+            mov eax, [brick_counter]
+            imul eax, BrickDefinition_size
+
+            mov edx, [r9 + rax + BrickDefinition.material]
+            dec edx;
+
+            lea r9, [material_table]
+            mov rdx, [r9 + rdx * 8]
+
+            mov ecx, [rdx + BrickMaterial.score_points]
+
+            mov rdi, rcx
+            call AddScore
+
+            mov rax, [score]
+            cmp rax, [hiscore]
+
+            jae .update_hiscore
+
+            jmp .continue_destroy
+
+            .update_hiscore:
+                mov rdi, rdx
+                call UpdateHiScore
+
+            .continue_destroy:
             mov eax, [destroyed_bricks]
             inc eax
             mov [destroyed_bricks], eax
